@@ -6,6 +6,7 @@ import datetime
 from statistics import mean
 from gym import wrappers
 import random
+import log
 import games as g
 
 class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has ability to group layers into an object with training and inference (interpreter) features.
@@ -146,9 +147,15 @@ def main():
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
+            f = open("log.txt", "a")
+            f.write((n, ";", total_reward, ";", epsilon, ";", avg_rewards,";", losses))
+            f.close()
     print("avg reward for last 100 episodes:", avg_rewards)
 
 
 if __name__ == '__main__':
     for i in range(3):
         main()
+
+
+
