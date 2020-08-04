@@ -94,16 +94,24 @@ def play_game(env, TrainNet, TargetNet, epsilon, copy_step):
     rewards = 0
     iter = 0
     done = False
-    observations = env.reset() # GYM
+    tictactoe = [0,0,0,0,0,0,0,0,0]
+    observations = tictactoe
     losses = list()
     while not done: # observes until game is done 
         action = TrainNet.get_action(observations, epsilon) # TrainNet determines favorable action
         prev_observations = observations # saves observations
-        observations, reward, done, _ = env.step(action) # GYM
+        if sum(tictactoe)==13:
+            done = True
+        else:
+            while True:
+                i = np.random.random(0,8)
+                if tictactoe[i] == 0:
+                    tictactoe[i]=2
+                    break()
+        reward = 0
         rewards += reward
         if done:
             reward = -200
-            env.reset() # GYM
 
         exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
         TrainNet.add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
@@ -116,28 +124,12 @@ def play_game(env, TrainNet, TargetNet, epsilon, copy_step):
         if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
             TargetNet.copy_weights(TrainNet) 
     return rewards, mean(losses) #returns rewards and average
-     
-'''def make_video(env, TrainNet):
-    env = wrappers.Monitor(env, os.path.join(os.getcwd(), "videos"), force=True)
-    rewards = 0
-    steps = 0
-    done = False
-    observation = env.reset()
-    while not done:
-        env.render()
-        action = TrainNet.get_action(observation, 0)
-        observation, reward, done, _ = env.step(action)
-        steps += 1
-        rewards += reward
-    print("Testing steps: {} rewards {}: ".format(steps, rewards))'''
-
 
 def main():
-    env = gym.make('CartPole-v0') #gym
     gamma = 0.99
     copy_step = 25
     num_states = len(env.observation_space.sample())
-    num_actions = env.action_space.n
+    num_actions = 9
     hidden_units = [200, 200]
     max_experiences = 10000
     min_experiences = 100
@@ -167,8 +159,6 @@ def main():
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
     print("avg reward for last 100 episodes:", avg_rewards)
-    make_video(env, TrainNet)
-    env.close()
 
 
 if __name__ == '__main__':
