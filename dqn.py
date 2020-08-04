@@ -4,7 +4,6 @@ import gym
 import os
 import datetime
 from statistics import mean
-from gym import wrappers
 import random
 import log
 import games as g
@@ -123,14 +122,13 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
 def main():
     environment = g.tictactoe()
     state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
-
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = 'logs/dqn/' + current_time
-    summary_writer = tf.summary.create_file_writer(log_dir)
-
+    # state: the initial state
+    # gamma: discount factor, weights importance of future reward [0,1]
+    # copy step: 
+    
     TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 50000
+    N = 50
     total_rewards = np.empty(N)
     epsilon = 0.99
     decay = 0.9999
@@ -140,22 +138,23 @@ def main():
         total_reward, losses = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
         total_rewards[n] = total_reward
         avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
-        with summary_writer.as_default():
-            tf.summary.scalar('episode reward', total_reward, step=n)
-            tf.summary.scalar('running avg reward(100)', avg_rewards, step=n)
-            tf.summary.scalar('average loss)', losses, step=n)
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
-            f = open("log.txt", "a")
-            f.write((n, ";", total_reward, ";", epsilon, ";", avg_rewards,";", losses))
-            f.close()
+            # f = open("log.txt", "a")
+            # f.write((n, ";", total_reward, ";", epsilon, ";", avg_rewards,";", losses))
+            # f.close()
     print("avg reward for last 100 episodes:", avg_rewards)
+
+    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
+    checkpoint_path = "models/"+current_time
+
+    tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
+    tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
 
 
 if __name__ == '__main__':
-    for i in range(3):
-        main()
+    main()
 
 
 
