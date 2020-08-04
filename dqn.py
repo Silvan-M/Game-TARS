@@ -5,7 +5,9 @@ import os
 import datetime
 from statistics import mean
 from gym import wrappers
-
+import random
+import log
+import games as g
 
 class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has ability to group layers into an object with training and inference (interpreter) features.
     def __init__(self, num_states, hidden_units, num_actions):
@@ -74,6 +76,7 @@ class DQN:
         if np.random.random() < epsilon: # compares a random number with the exploration factor which gets reduced over time to increase exploitation
             return np.random.choice(self.num_actions) # selects a random choice (exploration)
         else:
+            a = self.predict(np.atleast_2d(states))[0]
             return np.argmax(self.predict(np.atleast_2d(states))[0]) # selects a greedy choice (max value computed by the network - exploitation)
 
     def add_experience(self, exp): # memorizes experience, if the max amount is exceeded the oldest element gets deleted
@@ -90,29 +93,21 @@ class DQN:
             v1.assign(v2.numpy())
 
 
-def play_game(env, TrainNet, TargetNet, epsilon, copy_step):
+def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
+    environment.reset()
     rewards = 0
     iter = 0
     done = False
-    tictactoe = [0,0,0,0,0,0,0,0,0]
-    observations = tictactoe
+    observations = state
     losses = list()
     while not done: # observes until game is done 
         action = TrainNet.get_action(observations, epsilon) # TrainNet determines favorable action
         prev_observations = observations # saves observations
-        if sum(tictactoe)==13:
-            done = True
-        else:
-            while True:
-                i = np.random.random(0,8)
-                if tictactoe[i] == 0:
-                    tictactoe[i]=2
-                    break()
-        reward = 0
-        rewards += reward
-        if done:
-            reward = -200
-
+        result = environment.step(action)
+        observations = result[0]
+        reward = result[1]
+        done = result[2]
+        rewards += reward        
         exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
         TrainNet.add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
         loss = TrainNet.train(TargetNet) # returns loss 
@@ -126,15 +121,9 @@ def play_game(env, TrainNet, TargetNet, epsilon, copy_step):
     return rewards, mean(losses) #returns rewards and average
 
 def main():
-    gamma = 0.99
-    copy_step = 25
-    num_states = len(env.observation_space.sample())
-    num_actions = 9
-    hidden_units = [200, 200]
-    max_experiences = 10000
-    min_experiences = 100
-    batch_size = 32
-    alpha = 1e-2 # learning rate
+    environment = g.tictactoe()
+    state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
+
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     log_dir = 'logs/dqn/' + current_time
     summary_writer = tf.summary.create_file_writer(log_dir)
@@ -148,7 +137,7 @@ def main():
     min_epsilon = 0.1
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
-        total_reward, losses = play_game(env, TrainNet, TargetNet, epsilon, copy_step)
+        total_reward, losses = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
         total_rewards[n] = total_reward
         avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
         with summary_writer.as_default():
@@ -158,9 +147,15 @@ def main():
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
+            f = open("log.txt", "a")
+            f.write((n, ";", total_reward, ";", epsilon, ";", avg_rewards,";", losses))
+            f.close()
     print("avg reward for last 100 episodes:", avg_rewards)
 
 
 if __name__ == '__main__':
     for i in range(3):
         main()
+
+
+
