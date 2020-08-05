@@ -32,13 +32,14 @@ class tictactoe:
          
     def step(self, action)  -> list:
         reward = 0
+        won = False
 
         if self.state[action] != 0:
-            reward = -50
+            reward = 0
             self.illegalcount +=1
         else:
             self.state[action] = 1
-            reward = 50
+            reward = 0
         
         while True and (0 in self.state):
             var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
@@ -52,17 +53,18 @@ class tictactoe:
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
-                reward = 10
+                reward = 500
+                won = True
             else:
-                reward = -10
+                reward = -500
         # Tie
         if 0 not in self.state:
             done = True
-            reward = +10
+            reward = 0
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
-        return [self.state, reward, done]
+        return [self.state, reward, done, won]
     
     def state(self):
         return(self.state)

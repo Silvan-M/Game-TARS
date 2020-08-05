@@ -106,6 +106,10 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
         observations = result[0]
         reward = result[1]
         done = result[2]
+        if result[3] == 1:
+            won = True
+        else:
+            won = False
         rewards += reward        
         exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
         TrainNet.add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
@@ -117,43 +121,57 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
         iter += 1 # increment the counter
         if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
             TargetNet.copy_weights(TrainNet) 
-    return rewards, mean(losses) #returns rewards and average
+    return rewards, mean(losses), won #returns rewards and average
 
 def main():
     environment = g.tictactoe()
     state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
     # state: the initial state
     # gamma: discount factor, weights importance of future reward [0,1]
-    # copy step: 
+    # copy_step: the amount of episodes until the TargetNet gets updated
+    # num_states: Amount of states, num_actions: Amount of actions
+    # hidden_units: Amount of hidden neurons 
+    # max_experiences: sets the maximum data stored as experience, if exceeded the oldest gets deleted
+    # min_experiences: sets the start of the agent learning
+    # batch_size: amount of data processed at once
+    # alpha: learning rate, defines how drastically it changes weights
     
     TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 50
+    N = 500000
     total_rewards = np.empty(N)
     epsilon = 0.99
+    win_count = 0
     decay = 0.9999
     min_epsilon = 0.1
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
-        total_reward, losses = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
+        total_reward, losses, won = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
+        if won:
+            win_count += 1
         total_rewards[n] = total_reward
         avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
-            # f = open("log.txt", "a")
-            # f.write((n, ";", total_reward, ";", epsilon, ";", avg_rewards,";", losses))
-            # f.close()
+            f = open("log.txt", "a")
+            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+"\n")
+            f.close()
+            win_count = 0
     print("avg reward for last 100 episodes:", avg_rewards)
 
+    # Get current time and save models
     current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
-    checkpoint_path = "models/"+current_time
-
+    checkpoint_path = "models/"+current_time+"-N."+str(N) # Model saved at "models/Y.m.d-H:M:S-N.amountOfEpisodes"
+    # Save the models
     tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
     tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
-
+    
+    log.plot()
 
 if __name__ == '__main__':
+    f = open("log.txt", "w")
+    f.close()
     main()
 
 
