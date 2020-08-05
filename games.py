@@ -66,8 +66,6 @@ class tictactoe:
         # print(self.state)
         return [self.state, reward, done, won]
     
-    def state(self):
-        return(self.state)
 
 # # Testing
 # a = tictactoe()

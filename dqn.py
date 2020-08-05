@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import gym
 import os
 import datetime
 from statistics import mean
@@ -138,12 +137,17 @@ def main():
     
     TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 500000
+    N = 500
     total_rewards = np.empty(N)
     epsilon = 0.99
     win_count = 0
     decay = 0.9999
     min_epsilon = 0.1
+
+    # For storing logs and model afterwards
+    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
+    log_path = "logs/log."+current_time+"-N."+str(N)+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
+    checkpoint_path = "models/model."+current_time+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
         total_reward, losses, won = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
@@ -154,24 +158,19 @@ def main():
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
                   "episode loss: ", losses)
-            f = open("log.txt", "a")
+            f = open(log_path, "a")
             f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+"\n")
             f.close()
             win_count = 0
     print("avg reward for last 100 episodes:", avg_rewards)
 
-    # Get current time and save models
-    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
-    checkpoint_path = "models/"+current_time+"-N."+str(N) # Model saved at "models/Y.m.d-H:M:S-N.amountOfEpisodes"
     # Save the models
     tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
     tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
     
-    log.plot()
+    log.plot(log_path)
 
 if __name__ == '__main__':
-    f = open("log.txt", "w")
-    f.close()
     main()
 
 

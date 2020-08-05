@@ -3,3 +3,4 @@ logs/
 models/
 log.txt
 figures/
+__pycache__/

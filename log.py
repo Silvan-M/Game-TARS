@@ -2,9 +2,9 @@ import os
 import datetime
 import matplotlib.pyplot as plt
 
-def plot():
+def plot(log_path):
     data=[]
-    with open('log.txt') as f: # open log.txt
+    with open(log_path) as f: # open log.txt
         for line in f.readlines(): #read all lines and safe as list in line
             line=line.split(';') #separate data by ; into a list
             float_list = [float(i) for i in line] #convert into float
@@ -31,8 +31,8 @@ def plot():
     plt.xlabel("Episodes")
     plt.ylabel("Value")
     plt.legend(loc="upper right")
-    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H:%M:%S")
-    plt.savefig('figures/'+current_time+".pdf")
+    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
+    plt.savefig('figures/fig.'+current_time+".pdf")
     plt.show()
 
 
