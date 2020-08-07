@@ -141,7 +141,7 @@ def main():
     
     TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 1000
+    N = 300
     total_rewards = np.empty(N)
     epsilon = 0.9
     win_count = 0
@@ -149,10 +149,12 @@ def main():
     decay = 0.99
     min_epsilon = 0.1
 
+    log_interval = 100
+
     # For storing logs and model afterwards
     current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
-    log_path = "logs/log."+current_time+"-N."+str(N)+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
-    checkpoint_path = "models/model."+current_time+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
+    log_path = "logs/log."+current_time+"-I."+str(log_interval)+"-N."+str(N)+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
+    checkpoint_path = "models/model."+current_time+"-I."+str(log_interval)+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
         total_reward, losses, won, lose = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
@@ -161,9 +163,9 @@ def main():
         if lose:
             lose_count += 1
         total_rewards[n] = total_reward
-        avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
-        if (n % 100 == 0) and (n != 0):
-            print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
+        avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
+        if (n % log_interval == 0) and (n != 0) or (n == N-1):
+            print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last "+str(log_interval)+"):", avg_rewards,
                   "episode loss: ", losses, "wins: ",win_count, "lose: ", lose_count)
             f = open(log_path, "a")
             f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+"\n")
