@@ -141,7 +141,7 @@ def main():
     
     TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 5000
+    N = 1000
     total_rewards = np.empty(N)
     epsilon = 0.9
     win_count = 0

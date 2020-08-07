@@ -14,7 +14,7 @@ class tictactoe:
     def __init__(self):
         self.illegalcount = 0
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.9, 25, 9, 9, [18, 18], 10000, 100, 32, 0.1]
+        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.9, 50, 9, 9, [], 10000, 100, 128, 0.1]
         # Input: [state, gamma, copy_step, num_states, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
