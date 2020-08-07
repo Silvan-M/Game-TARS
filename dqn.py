@@ -14,7 +14,7 @@ class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has a
         self.hidden_layers = [] # clears the list of hidden layers
         for i in hidden_units: 
             self.hidden_layers.append(tf.keras.layers.Dense( 
-                i, activation='tanh', kernel_initializer='RandomNormal')) 
+                i, activation='relu', kernel_initializer='RandomNormal')) 
                 # activation = determines the output of a node with a specific input ['tanh','sigmoid']
                 # use_bias = uses bias vector [boolean] to add a value
                 # kernel_initializer = initialize random weights
