@@ -109,6 +109,10 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
             won = True
         else:
             won = False
+        if result[4] == 1:
+            loss = True
+        else:
+            loss = False
         rewards += reward        
         exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
         TrainNet.add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
@@ -120,7 +124,7 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
         iter += 1 # increment the counter
         if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
             TargetNet.copy_weights(TrainNet) 
-    return rewards, mean(losses), won #returns rewards and average
+    return rewards, mean(losses), won, loss #returns rewards and average
 
 def main():
     environment = g.tictactoe()
@@ -141,6 +145,7 @@ def main():
     total_rewards = np.empty(N)
     epsilon = 0.99
     win_count = 0
+    loss_count = 0
     decay = 0.9999
     min_epsilon = 0.1
 
@@ -150,16 +155,18 @@ def main():
     checkpoint_path = "models/model."+current_time+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
-        total_reward, losses, won = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
+        total_reward, losses, won, loss = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
         if won:
             win_count += 1
+        if loss:
+            loss_count += 1
         total_rewards[n] = total_reward
         avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
         if n % 100 == 0:
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
-                  "episode loss: ", losses)
+                  "episode loss: ", losses, "wins: ",win_count, "loss: ", loss_count)
             f = open(log_path, "a")
-            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+"\n")
+            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(loss_count))+"\n")
             f.close()
             win_count = 0
     print("avg reward for last 100 episodes:", avg_rewards)

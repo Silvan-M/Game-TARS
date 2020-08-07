@@ -15,18 +15,21 @@ def plot(log_path):
     avg_reward = []
     losses = []
     win_count = []
+    loss_count = []
     for i in range(len(data)): #append all data
         n.append(data[i][0])
         total_reward.append(data[i][1])
         epsilon.append(data[i][2]*1000)
         avg_reward.append(data[i][3])
         losses.append(data[i][4]/30)
-        win_count.append(data[i][5]*5)
-    plt.plot(n, total_reward, 'r', label="Total Reward") #plot data
-    plt.plot(n, epsilon, 'g', label="Epsilon (amplified x1000)")
-    plt.plot(n, avg_reward, 'b', label="Avg. Reward")
-    plt.plot(n, losses, 'y', label="Losses (30)")
-    plt.plot(n, win_count, 'k', label="Wins per 100 (amplified x5)")
+        win_count.append(data[i][5])
+        loss_count.append(data[i][5])
+    #plt.plot(n, total_reward, 'r', label="Total Reward") #plot data
+    #plt.plot(n, epsilon, 'g', label="Epsilon (amplified x1000)")
+    #plt.plot(n, avg_reward, 'b', label="Avg. Reward")
+    #plt.plot(n, losses, 'y', label="Losses (30)")
+    plt.plot(n, win_count, 'k', label="Wins per 100 "
+    plt.plot(n, loss_count, 'p', label="Losses per 100 "))
     plt.title("Log")
     plt.xlabel("Episodes")
     plt.ylabel("Value")

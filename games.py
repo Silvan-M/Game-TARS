@@ -1,9 +1,20 @@
 import random
+
+class ultimate_tictactoe:
+    def __init__(self):
+        self.state = [[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.99, 25, 9, 9, [200, 200], 10000, 100, 32, 1e-2]
+        # Input: [state, gamma, copy_step, num_states, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+    def reset(self):
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+
 class tictactoe:
     def __init__(self):
         self.illegalcount = 0
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.99, 25, 9, 9, [200, 200], 10000, 100, 32, 1e-2]
+        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.9, 25, 9, 9, [200, 200], 10000, 100, 32, 0.1]
         # Input: [state, gamma, copy_step, num_states, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -29,8 +40,7 @@ class tictactoe:
             return True, self.state[2]
 
         return False, 0 
-         
-    def step(self, action)  -> list:
+     def step_player(self, action)  -> list:
         reward = 0
         won = False
 
@@ -42,7 +52,7 @@ class tictactoe:
             reward = 0
         
         while True and (0 in self.state):
-            var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+            var = int(input()) # 0 = empty, 1 = AI, 2 = player
             if self.state[var] == 0:
                 self.state[var] = 2
                 break
@@ -64,7 +74,46 @@ class tictactoe:
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
-        return [self.state, reward, done, won]
+        return [self.state, reward, done, won]     
+    def step(self, action)  -> list:
+        reward = 0
+        won = False
+        loss = False
+                # Tie
+        if 0 not in self.state:
+            done = True
+            reward = 0
+        if self.state[action] != 0:
+            reward = 0
+            self.illegalcount +=1
+        else:
+            self.state[action] = 1
+            reward = 0
+        
+        while True and (0 in self.state):
+            var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+            if self.state[var] == 0:
+                self.state[var] = 2
+                break
+        
+        # if game is done, end the game
+        done, winner = self.checkWhoWon()
+
+        if done:
+            #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
+            if winner == 1:
+                reward = 500
+                won = True
+                loss = False
+            else:
+                loss = True
+                won = False
+                reward = -500
+
+        
+        # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
+        # print(self.state)
+        return [self.state, reward, done, won, loss]
     
 
 # # Testing
