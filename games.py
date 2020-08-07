@@ -40,7 +40,7 @@ class tictactoe:
             return True, self.state[2]
 
         return False, 0 
-     def step_player(self, action)  -> list:
+    def step_player(self, action)  -> list:
         reward = 0
         won = False
 
@@ -78,11 +78,8 @@ class tictactoe:
     def step(self, action)  -> list:
         reward = 0
         won = False
-        loss = False
-                # Tie
-        if 0 not in self.state:
-            done = True
-            reward = 0
+        lose = False
+        
         if self.state[action] != 0:
             reward = 0
             self.illegalcount +=1
@@ -104,16 +101,20 @@ class tictactoe:
             if winner == 1:
                 reward = 500
                 won = True
-                loss = False
+                lose = False
             else:
-                loss = True
+                lose = True
                 won = False
                 reward = -500
 
+        # Tie
+        if 0 not in self.state:
+            done = True
+            reward = 0
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
-        return [self.state, reward, done, won, loss]
+        return [self.state, reward, done, won, lose]
     
 
 # # Testing
