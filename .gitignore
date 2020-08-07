@@ -4,3 +4,4 @@ models/
 log.txt
 figures/
 __pycache__/
+.vscode/
