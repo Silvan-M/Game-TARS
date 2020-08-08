@@ -148,7 +148,6 @@ def main():
     lose_count = 0
     decay = 0.99
     min_epsilon = 0.1
-
     log_interval = 100
 
     # For storing logs and model afterwards
@@ -172,12 +171,11 @@ def main():
             f.close()
             win_count = 0
             lose_count = 0
-    print("avg reward for last 100 episodes:", avg_rewards)
 
-    # Save the models
-    tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
-    tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
-    
+            # Save the models
+            tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
+            tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
+    print("avg reward for last 100 episodes:", avg_rewards)    
     log.plot(log_path)
 
 if __name__ == '__main__':
