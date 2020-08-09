@@ -42,37 +42,45 @@ class tictactoe:
             return True, self.state[2]
 
         return False, 0 
+    
     def step_player(self, action)  -> list:
         reward = 0
         won = False
+        illegalmove = False
 
         if self.state[action] != 0:
-            reward = 0
+            reward = -0.1
+            illegalmove = True
             self.illegalcount +=1
         else:
             self.state[action] = 1
-            reward = 0
-        
-        while True and (0 in self.state):
-            var = int(input()) # 0 = empty, 1 = AI, 2 = player
-            if self.state[var] == 0:
-                self.state[var] = 2
-                break
+            reward = 0.1
         
         # if game is done, end the game
         done, winner = self.checkWhoWon()
 
+        while (0 in self.state) and not illegalmove and not done:
+            print(self.state[0:3], "   ", [0,1,2])
+            print(self.state[3:6], "   ", [3,4,5])
+            print(self.state[6:9], "   ", [6,7,8])
+            var = int(input("Choose which field to set, starting on the top left with 0.\nI choose: ")) # 0 = empty, 1 = AI, 2 = player
+            if self.state[var] == 0:
+                self.state[var] = 2
+                break
+            else: 
+                print("Please make a valid move.")
+
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
-                reward = 500
+                reward = 0
                 won = True
             else:
-                reward = -500
+                reward = 0
         # Tie
         if 0 not in self.state:
             done = True
-            reward = 0
+            reward = 0.5
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
@@ -85,21 +93,23 @@ class tictactoe:
         illegalmove = False
         
         if self.state[action] != 0:
-            reward = 0
+            reward = -0.1
             illegalmove = True
             self.illegalcount +=1
         else:
             self.state[action] = 1
-            reward = 0
+            reward = 0.1
         
-        while True and (0 in self.state) and not illegalmove:
+        # if game is done, end the game
+        done, winner = self.checkWhoWon()
+
+        while (0 in self.state) and not illegalmove and not done:
             var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
             if self.state[var] == 0:
                 self.state[var] = 2
                 break
         
-        # if game is done, end the game
-        done, winner = self.checkWhoWon()
+        
 
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
@@ -121,11 +131,11 @@ class tictactoe:
         # print(self.state)
         debugging = False
         if done and debugging:
-            print(self.state[0:3])
-            print(self.state[3:6])
-            print(self.state[6:9])
+            print(self.state[0:3], "   ", [0,1,2])
+            print(self.state[3:6], "   ", [3,4,5])
+            print(self.state[6:9], "   ", [6,7,8])
             print("Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
-        return [self.state, reward, done, won, lose]
+        return [self.state, reward, done, won, lose, illegalmove]
     
 
 # # Testing

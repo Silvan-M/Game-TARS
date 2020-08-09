@@ -91,56 +91,59 @@ class DQN:
             v1.assign(v2.numpy())
 
 
-def play_game(state, environment, TrainNet):
+def play_game(environment, dqn):
     environment.reset()
     done = False
-    while not done: # observes until game is done 
-        action = TrainNet.get_action(observations, epsilon) # TrainNet determines favorable action
-        won = environment.step(action)
-        rewards += reward        
-        exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
-        TrainNet.add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
-        loss = TrainNet.train(TargetNet) # returns loss 
-        if isinstance(loss, int): # checks if loss is an integer
-            losses.append(loss)
-        else:
-            losses.append(loss.numpy()) # converted into an integer
-        iter += 1 # increment the counter
-        if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
-            TargetNet.copy_weights(TrainNet) 
-    return rewards, mean(losses), won #returns rewards and average
+    observations = environment.state
+    tie = False
+    while not done:
+        action = dqn.get_action(observations, 0) # Dqn determines favorable action
+        result = environment.step_player(action)
+        observations = result[0]
+        reward = result[1]
+        done = result[2]
+        won = result[3]
+        random_action = -1
+        while reward == -0.1:
+            random_action = random.randint(0,dqn.num_actions-1)
+            result = environment.step_player(random_action)
+            observations = result[0]
+            reward = result[1]
+            done = result[2]
+            won = result[3]
+        if random_action != -1:
+            print("Chose random action: "+str(random_action))
+        if reward == 0.5:
+            tie = True
+        print(observations)
+        print("DONE: ", done,"WON: ", won,"TIE: ", tie,"REWARD: ", reward)
+    return won, tie
 
 def main():
     environment = g.tictactoe()
+    state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
 
-    # For storing logs and model afterwards
-    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
-    log_path = "logs/log."+current_time+"-N."+str(N)+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
-    checkpoint_path = "models/model."+current_time+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
-    for n in range(N):
-        epsilon = max(min_epsilon, epsilon * decay)
-        total_reward, losses, won = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
-        if won:
-            win_count += 1
-        total_rewards[n] = total_reward
-        avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
-        if n % 100 == 0:
-            print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
-                  "episode loss: ", losses)
-            f = open(log_path, "a")
-            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+"\n")
-            f.close()
-            win_count = 0
-    print("avg reward for last 100 episodes:", avg_rewards)
-
-    # Save the models
-    tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
-    tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
+    dqn = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     
-    log.plot(log_path)
+    model_name = "model.2020.08.09-17.57.56-I.100-N.1000"
+    directory = "models/"+model_name+"/TrainNet/"
+    tf.saved_model.load(directory)
+
+    won, tie = play_game(environment, dqn)
+
+    if tie:
+        print("It's a tie!")
+    elif won:
+        print("You lost! The AI won!")
+    else:
+        print("You won!")
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        inp = input("Do you want to restart? (Y/n)")
+        if inp != "Y" and inp != "y" and inp != "":
+            break
 
 
 
