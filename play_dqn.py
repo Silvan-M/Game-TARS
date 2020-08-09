@@ -112,25 +112,6 @@ def play_game(state, environment, TrainNet):
 
 def main():
     environment = g.tictactoe()
-    state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
-    # state: the initial state
-    # gamma: discount factor, weights importance of future reward [0,1]
-    # copy_step: the amount of episodes until the TargetNet gets updated
-    # num_states: Amount of states, num_actions: Amount of actions
-    # hidden_units: Amount of hidden neurons 
-    # max_experiences: sets the maximum data stored as experience, if exceeded the oldest gets deleted
-    # min_experiences: sets the start of the agent learning
-    # batch_size: amount of data processed at once
-    # alpha: learning rate, defines how drastically it changes weights
-    
-    TrainNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-    N = 500
-    total_rewards = np.empty(N)
-    epsilon = 0.99
-    win_count = 0
-    decay = 0.9999
-    min_epsilon = 0.1
 
     # For storing logs and model afterwards
     current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")

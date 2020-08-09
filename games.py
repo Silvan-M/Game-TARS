@@ -1,21 +1,23 @@
 import random
 
-class ultimate_tictactoe:
-    def __init__(self):
-        self.state = [[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0]]
-        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.99, 25, 9, 9, [200, 200], 10000, 100, 32, 1e-2]
-        # Input: [state, gamma, copy_step, num_states, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
-    def reset(self):
-        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-
-
 class tictactoe:
     def __init__(self):
         self.illegalcount = 0
-        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.variables = [[0, 0, 0, 0, 0, 0, 0, 0, 0], 0.9, 50, 9, 9, [], 10000, 100, 128, 0.1]
-        # Input: [state, gamma, copy_step, num_states, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+
+        # Variables
+        state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.state = state
+        gamma = 0.9
+        copy_step = 50
+        num_state = 9
+        num_actions = 9
+        hidden_units = []
+        max_experience = 10000
+        min_experience = 100
+        batch_size = 128
+        alpha = 0.1
+        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+    
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -137,3 +139,22 @@ class tictactoe:
 #     if done:
 #         print("State: "+str(state)+", Reward: "+str(reward)+", Done: "+str(done))
 #         break
+
+class ultimate_tictactoe:
+    def __init__(self):
+        
+        # Variables
+        state = [[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        self.state = state
+        gamma = 0.99
+        copy_step = 25
+        num_state = 9
+        num_actions = 9
+        hidden_units = [200, 200]
+        max_experience = 10000
+        min_experience = 100
+        batch_size = 32
+        alpha = 1e-2
+        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+    def reset(self):
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
