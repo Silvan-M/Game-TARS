@@ -1,4 +1,5 @@
 import random
+import time
 
 class tictactoe:
     def __init__(self):
@@ -26,13 +27,13 @@ class tictactoe:
 
     def checkWhoWon(self):
         #check if previous move caused a win on vertical line 
-        for i in range(0,2):
+        for i in range(0,3):
             v = i*3
             if self.state[v] == self.state[1+v] == self.state[2+v] != 0:
                 return True, self.state[v]
 
         #check if previous move caused a win on horizontal line 
-        for i in range(0,2):
+        for i in range(0,3):
             if self.state[i] == self.state[3+i] == self.state[6+i] != 0:
                 return True, self.state[i]
 
@@ -73,6 +74,9 @@ class tictactoe:
             else: 
                 print("Please make a valid move.")
 
+        # Check again
+        done, winner = self.checkWhoWon()
+
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
@@ -112,7 +116,8 @@ class tictactoe:
                 self.state[var] = 2
                 break
         
-        
+        # Check again
+        done, winner = self.checkWhoWon()
 
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
@@ -139,6 +144,54 @@ class tictactoe:
             print(self.state[6:9], "   ", [6,7,8])
             print("Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
         return [self.state, reward, done, won, lose, illegalmove]
+    
+    def step_dqn_vs_dqn(self, action, activePlayer)  -> list:
+        reward = 0
+        won = False
+        lose = False
+        illegalmove = False
+        activeTicTacToePlayer = activePlayer + 1
+        
+        if self.state[action] != 0:
+            reward = -0.1
+            illegalmove = True
+            self.illegalcount +=1
+        else:
+            self.state[action] = activeTicTacToePlayer
+            reward = 0.1
+            if activePlayer == 0:
+                activePlayer = 1
+            else:
+                activePlayer = 0
+        
+        # if game is done, end the game
+        done, winner = self.checkWhoWon()
+
+        if done:
+            #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
+            if winner == 1:
+                reward = 1
+                won = True
+                lose = False
+            else:
+                lose = True
+                won = False
+                reward = -1
+
+        # Tie
+        if (0 not in self.state) and not done:
+            done = True
+            reward = 0.5
+        
+        # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
+        # print(self.state)
+        debugging = False
+        if done and debugging:
+            print(self.state[0:3], "   ", [0,1,2])
+            print(self.state[3:6], "   ", [3,4,5])
+            print(self.state[6:9], "   ", [6,7,8])
+            print("Done: ", done,"Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
+        return [self.state, reward, done, won, lose, illegalmove, activePlayer]
     
 
 # # Testing

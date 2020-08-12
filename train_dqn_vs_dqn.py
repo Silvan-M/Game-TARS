@@ -14,7 +14,7 @@ class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has a
         self.hidden_layers = [] # clears the list of hidden layers
         for i in hidden_units: 
             self.hidden_layers.append(tf.keras.layers.Dense( 
-                i, activation='tanh', kernel_initializer='RandomNormal')) 
+                i, activation='relu', kernel_initializer='RandomNormal')) 
                 # activation = determines the output of a node with a specific input ['tanh','sigmoid']
                 # use_bias = uses bias vector [boolean] to add a value
                 # kernel_initializer = initialize random weights
@@ -91,59 +91,136 @@ class DQN:
             v1.assign(v2.numpy())
 
 
-def play_game(environment, dqn):
+def play_game(state, environment, NetworkList, epsilon, copy_step):
     environment.reset()
+    rewards = [0,0]
+    iter = [0,0]
     done = False
-    observations = environment.state
-    tie = False
-    while not done:
-        action = dqn.get_action(observations, 0) # Dqn determines favorable action
-        result = environment.step_player(action)
+    observations = state
+    losses = [list(),list()]
+    illegal_moves = [0,0]
+    activePlayer = 0
+    action = [int(),int()]
+    while not done: # observes until game is done 
+        action[activePlayer] = NetworkList[activePlayer][0].get_action(observations, epsilon) # TrainNet determines favorable action
+        prev_observations = observations # saves observations
+        result = environment.step_dqn_vs_dqn(action[activePlayer],activePlayer)
         observations = result[0]
         reward = result[1]
         done = result[2]
-        won = result[3]
-        random_action = -1
-        while reward == -0.1:
-            random_action = random.randint(0,dqn.num_actions-1)
-            result = environment.step_player(random_action)
-            observations = result[0]
-            reward = result[1]
-            done = result[2]
-            won = result[3]
-        if random_action != -1:
-            print("Chose random action: "+str(random_action))
-        if reward == 0.5:
-            tie = True
-        print(observations)
-        print("DONE: ", done,"WON: ", won,"TIE: ", tie,"REWARD: ", reward)
-    return won, tie
+        illegalmove = result[5]
+
+        exp = {'s': prev_observations, 'a': action[activePlayer], 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
+        NetworkList[activePlayer], losses[activePlayer], iter[activePlayer] = improveNetworks(NetworkList[activePlayer], exp, losses[activePlayer], iter[activePlayer], copy_step)
+
+        if illegalmove:
+            illegal_moves[activePlayer] += 1
+        if result[3] == 1:
+            won = True
+        else:
+            won = False
+        if result[4] == 1:
+            lose = True
+        else:
+            lose = False
+        rewards[activePlayer] += reward        
+
+        # -- Here the DQNs which are not finishing the game will be updated if a game ends. --
+        # If DQN 1 wins, update DQN 2 with negative reward
+        if won:
+            exp = {'s': prev_observations, 'a': action[1], 'r': -reward, 's2': observations, 'done': done} # reverse reward if won 
+            NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
+        # If DQN 2 wins, update DQN 1 with negative reward
+        elif lose:
+            exp = {'s': prev_observations, 'a': action[0], 'r': -reward, 's2': observations, 'done': done} # reverse reward if won 
+            NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
+        # if Tie improve DQN of player 1 if it's the turn of player 2 and analogously if player 2 wins
+        elif reward == 0.5:
+            if activePlayer == 0:
+                exp = {'s': prev_observations, 'a': action[1], 'r': reward, 's2': observations, 'done': done}
+                NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
+            else:
+                exp = {'s': prev_observations, 'a': action[0], 'r': reward, 's2': observations, 'done': done}
+                NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
+
+        activePlayer = result[6]
+    return rewards[0], mean(losses[0]), won, lose, illegal_moves[0] #returns rewards and average
+
+def improveNetworks(networks, exp, losses, iter, copy_step):
+    networks[0].add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
+    loss = networks[0].train(networks[1]) # returns loss 
+    if isinstance(loss, int): # checks if loss is an integer
+        losses.append(loss)
+    else:
+        losses.append(loss.numpy()) # converted into an integer
+    iter += 1 # increment the counter
+    if iter % copy_step == 0: # copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+        networks[1].copy_weights(networks[0])
+    
+    return networks, losses, iter
 
 def main():
     environment = g.tictactoe()
     state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
-
-    dqn = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+    # state: the initial state
+    # gamma: discount factor, weights importance of future reward [0,1]
+    # copy_step: the amount of episodes until the TargetNet gets updated
+    # num_states: Amount of states, num_actions: Amount of actions
+    # hidden_units: Amount of hidden neurons 
+    # max_experiences: sets the maximum data stored as experience, if exceeded the oldest gets deleted
+    # min_experiences: sets the start of the agent learning
+    # batch_size: amount of data processed at once
+    # alpha: learning rate, defines how drastically it changes weights
     
-    model_name = "model.2020.08.12-19.42.21-I.100-N.1000"
-    directory = "models/"+model_name+"/TrainNet/"
-    tf.saved_model.load(directory)
+    # DQN - Player 1
+    TrainNet1 = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+    TargetNet1 = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-    won, tie = play_game(environment, dqn)
+    # DQN - Player 2
+    TrainNet2 = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+    TargetNet2 = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-    if tie:
-        print("It's a tie!")
-    elif won:
-        print("You lost! The AI won!")
-    else:
-        print("You won!")
+    N = 1000
+    total_rewards = np.empty(N)
+    win_count = 0
+    lose_count = 0
+    log_interval = 100
+
+    # For storing logs and model afterwards
+    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
+    timeAndInfo = current_time+"-I."+str(log_interval)+"-N."+str(N)
+    log_path = "logs/log."+timeAndInfo+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
+    checkpoint_path = "models/model."+timeAndInfo # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
+    illegal_moves = 0
+    for n in range(N):
+        epsilon = max(min_epsilon, epsilon * decay)
+        total_reward, losses, won, lose, illegal_moves_game = play_game(state, environment, [[TrainNet1, TargetNet1], [TrainNet2, TargetNet2]], epsilon, copy_step)
+        if won:
+            win_count += 1
+        if lose:
+            lose_count += 1
+        
+        total_rewards[n] = total_reward
+        avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
+        illegal_moves += illegal_moves_game
+        if (n % log_interval == 0) and (n != 0) or (n == N-1):
+            print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last "+str(log_interval)+"):", avg_rewards,
+                  "episode loss: ", losses, "wins: ",win_count, "lose: ", lose_count, "illegal moves: ",illegal_moves)
+            f = open(log_path, "a")
+            illegal_moves = 0
+            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+"\n")
+            f.close()
+            win_count = 0
+            lose_count = 0
+
+            # Save the models
+            tf.saved_model.save(TrainNet1.model, checkpoint_path+"/TrainNet")
+            tf.saved_model.save(TargetNet1.model, checkpoint_path+"/TargetNet")
+    print("avg reward for last 100 episodes:", avg_rewards)    
+    log.plot(log_path)
 
 if __name__ == '__main__':
-    while True:
-        main()
-        inp = input("Do you want to restart? (Y/n)")
-        if inp != "Y" and inp != "y" and inp != "":
-            break
+    main()
 
 
 

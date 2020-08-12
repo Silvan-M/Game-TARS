@@ -154,8 +154,9 @@ def main():
 
     # For storing logs and model afterwards
     current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
-    log_path = "logs/log."+current_time+"-I."+str(log_interval)+"-N."+str(N)+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
-    checkpoint_path = "models/model."+current_time+"-I."+str(log_interval)+"-N."+str(N) # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
+    timeAndInfo = current_time+"-I."+str(log_interval)+"-N."+str(N)
+    log_path = "logs/log."+timeAndInfo+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
+    checkpoint_path = "models/model."+timeAndInfo # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
     illegal_moves = 0
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)

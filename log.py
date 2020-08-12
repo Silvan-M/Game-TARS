@@ -1,9 +1,10 @@
 import os
-import datetime
 import matplotlib.pyplot as plt
 
 def plot(log_path):
+    # Filename is used to create 
     data=[]
+    timeAndInfo = log_path[9:-4]
     with open(log_path) as f: # open log.txt
         for line in f.readlines(): #read all lines and safe as list in line
             line=line.split(';') #separate data by ; into a list
@@ -44,8 +45,5 @@ def plot(log_path):
     plt.xlabel("Episodes")
     plt.ylabel("Value")
     plt.legend(loc="upper right")
-    current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
-    plt.savefig('figures/fig.'+current_time+".pdf")
+    plt.savefig('figures/fig.'+timeAndInfo+".pdf")
     plt.show()
-
-
