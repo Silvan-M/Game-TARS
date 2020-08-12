@@ -132,7 +132,7 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
 
 def main():
     environment = g.tictactoe()
-    state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha = environment.variables
+    state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, decay = environment.variables
     # state: the initial state
     # gamma: discount factor, weights importance of future reward [0,1]
     # copy_step: the amount of episodes until the TargetNet gets updated
@@ -147,7 +147,6 @@ def main():
     TargetNet = DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     N = 1000
     total_rewards = np.empty(N)
-    epsilon = 0.9
     win_count = 0
     lose_count = 0
     decay = 0.99

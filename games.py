@@ -16,7 +16,9 @@ class tictactoe:
         min_experience = 100
         batch_size = 128
         alpha = 0.1
-        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+        epsilon = 0.9
+        decay = 0.99
+        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, decay]
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -165,6 +167,8 @@ class ultimate_tictactoe:
         min_experience = 100
         batch_size = 32
         alpha = 1e-2
-        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha]
+        epsilon = 0.9
+        decay = 0.99
+        self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, decay]
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
