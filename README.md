@@ -12,6 +12,7 @@ To successfully run the project create three folders in the main Game-TARS folde
 Make sure you have following libraries installed:
 - Numpy
 - TensorFlow
+- Pygame
 
 Then simply launch dqn.py
 
