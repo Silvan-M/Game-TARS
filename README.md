@@ -14,5 +14,6 @@ Make sure you have following libraries installed:
 - TensorFlow
 - Pygame
 
-Then simply launch dqn.py
+Launch `play_dqn_pygame.py` to check out our games in a sleek user interface!
+Or launch train_dqn.py to train a AI.
 
