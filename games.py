@@ -93,7 +93,7 @@ class tictactoe:
         # print(self.state)
         return [self.state, reward, done, won]  
 
-    def step(self, action)  -> list:
+    def step_random(self, action)  -> list:
         reward = 0
         won = False
         lose = False
@@ -145,7 +145,7 @@ class tictactoe:
             print("Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
         return [self.state, reward, done, won, lose, illegalmove]
     
-    def step_dqn_vs_dqn(self, action, activePlayer)  -> list:
+    def step_once(self, action, activePlayer)  -> list:
         reward = 0
         won = False
         lose = False
@@ -192,19 +192,6 @@ class tictactoe:
             print(self.state[6:9], "   ", [6,7,8])
             print("Done: ", done,"Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
         return [self.state, reward, done, won, lose, illegalmove, activePlayer]
-    
-
-# # Testing
-# a = tictactoe()
-# for i in range(0,15):
-#     print(a.state[0:3])
-#     print(a.state[3:6])
-#     print(a.state[6:9])
-#     inp = input("Select move: ")
-#     state, reward, done  = tictactoe.step(a, int(inp))
-#     if done:
-#         print("State: "+str(state)+", Reward: "+str(reward)+", Done: "+str(done))
-#         break
 
 class ultimate_tictactoe:
     def __init__(self):
