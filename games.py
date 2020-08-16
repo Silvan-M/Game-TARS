@@ -12,15 +12,22 @@ class tictactoe:
         copy_step = 50
         num_state = 9
         num_actions = 9
-        hidden_units = []
-        max_experience = 10000
+        hidden_units = [27,27,27]
+        max_experience = 50000
         min_experience = 100
-        batch_size = 128
-        alpha = 0.1
+        batch_size = 1
+        alpha = 0.01
         epsilon = 0.9
-        min_epsilon = 0.1
+        min_epsilon = 0.2
         decay = 0.99
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
+
+        # Python specific variables
+        self.reward_tie = 0.5
+        self.reward_win = 1
+        self.reward_lose = -1
+        self.reward_illegal_move = -10
+        self.reward_legal_move = 0
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -53,12 +60,12 @@ class tictactoe:
         illegalmove = False
 
         if self.state[action] != 0:
-            reward = -0.1
+            reward = self.reward_illegal_move
             illegalmove = True
             self.illegalcount +=1
         else:
             self.state[action] = 1
-            reward = 0.1
+            reward = self.reward_legal_move
         
         # if game is done, end the game
         done, winner = self.checkWhoWon()
@@ -80,14 +87,14 @@ class tictactoe:
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
-                reward = 0
+                reward = self.reward_win
                 won = True
             else:
-                reward = 0
+                reward = self.reward_lose
         # Tie
         if 0 not in self.state:
             done = True
-            reward = 0.5
+            reward = self.reward_tie
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
@@ -100,12 +107,12 @@ class tictactoe:
         illegalmove = False
         
         if self.state[action] != 0:
-            reward = -0.1
+            reward = self.reward_illegal_move
             illegalmove = True
             self.illegalcount +=1
         else:
             self.state[action] = 1
-            reward = 0.1
+            reward = self.reward_legal_move
         
         # if game is done, end the game
         done, winner = self.checkWhoWon()
@@ -122,18 +129,18 @@ class tictactoe:
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
-                reward = 1
+                reward = self.reward_win
                 won = True
                 lose = False
             else:
                 lose = True
                 won = False
-                reward = -1
+                reward = self.reward_illegal_move
 
         # Tie
         if (0 not in self.state) and not done:
             done = True
-            reward = 0.5
+            reward = self.reward_tie
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
@@ -153,12 +160,12 @@ class tictactoe:
         activeTicTacToePlayer = activePlayer + 1
         
         if self.state[action] != 0:
-            reward = -0.1
+            reward = self.reward_tie
             illegalmove = True
             self.illegalcount +=1
         else:
             self.state[action] = activeTicTacToePlayer
-            reward = 0.1
+            reward = self.reward_legal_move
             if activePlayer == 0:
                 activePlayer = 1
             else:
@@ -170,18 +177,18 @@ class tictactoe:
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
-                reward = 1
+                reward = self.reward_win
                 won = True
                 lose = False
             else:
                 lose = True
                 won = False
-                reward = -1
+                reward = self.reward_lose
 
         # Tie
         if (0 not in self.state) and not done:
             done = True
-            reward = 0.5
+            reward = self.reward_tie
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
