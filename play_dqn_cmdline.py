@@ -43,7 +43,7 @@ def main():
     dqn = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     
     model_name = "model.2020.08.12-19.42.21-I.100-N.1000"
-    directory = "models/"+model_name+"/TrainNet/"
+    directory = "tictactoe/models/"+model_name+"/TrainNet/"
     tf.saved_model.load(directory)
 
     won, tie = play_game(environment, dqn)

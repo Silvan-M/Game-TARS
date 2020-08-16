@@ -1,10 +1,10 @@
 import os
 import matplotlib.pyplot as plt
 
-def plot(log_path):
+def plotTicTacToe(log_path):
     # Filename is used to create 
     data=[]
-    timeAndInfo = log_path[9:-4]
+    timeAndInfo = log_path[19:-4]
     with open(log_path) as f: # open log.txt
         for line in f.readlines(): #read all lines and safe as list in line
             line=line.split(';') #separate data by ; into a list
@@ -45,5 +45,5 @@ def plot(log_path):
     plt.xlabel("Episodes")
     plt.ylabel("Value")
     plt.legend(loc="upper right")
-    plt.savefig('figures/fig.'+timeAndInfo+".pdf")
+    plt.savefig('tictactoe/figures/fig.'+timeAndInfo+".pdf")
     plt.show()

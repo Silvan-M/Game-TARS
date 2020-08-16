@@ -22,7 +22,10 @@ class tictactoe:
         decay = 0.99
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
 
-        # Python specific variables
+        # Enable debugging if necessary
+        self.debugging = False
+        
+        # TicTacToe specific variables
         self.reward_tie = 0.5
         self.reward_win = 1
         self.reward_lose = -1
@@ -135,7 +138,7 @@ class tictactoe:
             else:
                 lose = True
                 won = False
-                reward = self.reward_illegal_move
+                reward = self.reward_lose
 
         # Tie
         if (0 not in self.state) and not done:
@@ -144,8 +147,7 @@ class tictactoe:
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
-        debugging = False
-        if done and debugging:
+        if done and self.debugging:
             print(self.state[0:3], "   ", [0,1,2])
             print(self.state[3:6], "   ", [3,4,5])
             print(self.state[6:9], "   ", [6,7,8])
@@ -160,7 +162,7 @@ class tictactoe:
         activeTicTacToePlayer = activePlayer + 1
         
         if self.state[action] != 0:
-            reward = self.reward_tie
+            reward = self.reward_illegal_move
             illegalmove = True
             self.illegalcount +=1
         else:
@@ -192,8 +194,7 @@ class tictactoe:
         
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
-        debugging = False
-        if done and debugging:
+        if done and self.debugging:
             print(self.state[0:3], "   ", [0,1,2])
             print(self.state[3:6], "   ", [3,4,5])
             print(self.state[6:9], "   ", [6,7,8])

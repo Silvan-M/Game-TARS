@@ -8,7 +8,7 @@ import log
 import games as g
 import dqn as dqn
 
-def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
+def play_tictactoe(state, environment, TrainNet, TargetNet, epsilon, copy_step):
     environment.reset()
     rewards = 0
     iter = 0
@@ -48,7 +48,14 @@ def play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step):
     return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
 
 def main():
-    environment = g.tictactoe()
+    # Dict of all games for generalization purposes, values are:
+    # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func
+    games = {"tictactoe":[play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe]}
+    
+    # Here you can choose which of the games declared above you want to train, feel free to change!
+    game = games["tictactoe"]
+
+    environment = game[1]()
     state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
     # state: the initial state
     # gamma: discount factor, weights importance of future reward [0,1]
@@ -63,7 +70,7 @@ def main():
     TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-    N = 1000
+    N = int(input("How many episodes do you want to train?\n"))
     total_rewards = np.empty(N)
     win_count = 0
     lose_count = 0
@@ -72,12 +79,12 @@ def main():
     # For storing logs and model afterwards
     current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
     timeAndInfo = current_time+"-I."+str(log_interval)+"-N."+str(N)
-    log_path = "logs/log."+timeAndInfo+".txt" # Model saved at "logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
-    checkpoint_path = "models/model."+timeAndInfo # Model saved at "models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
+    log_path = game[2]+"/logs/log."+timeAndInfo+".txt" # Model saved at "tictactoe/logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
+    checkpoint_path = game[2]+"/models/model."+timeAndInfo # Model saved at "tictactoe/models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
     illegal_moves = 0
     for n in range(N):
         epsilon = max(min_epsilon, epsilon * decay)
-        total_reward, losses, won, lose, illegal_moves_game = play_game(state, environment, TrainNet, TargetNet, epsilon, copy_step)
+        total_reward, losses, won, lose, illegal_moves_game = game[0](state, environment, TrainNet, TargetNet, epsilon, copy_step)
         if won:
             win_count += 1
         if lose:
@@ -99,7 +106,7 @@ def main():
             tf.saved_model.save(TrainNet.model, checkpoint_path+"/TrainNet")
             tf.saved_model.save(TargetNet.model, checkpoint_path+"/TargetNet")
     print("avg reward for last 100 episodes:", avg_rewards)    
-    log.plot(log_path)
+    game[3](log_path)
 
 if __name__ == '__main__':
     main()
