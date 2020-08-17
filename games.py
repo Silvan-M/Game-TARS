@@ -29,7 +29,7 @@ class tictactoe:
         self.reward_tie = 0.5
         self.reward_win = 1
         self.reward_lose = -1
-        self.reward_illegal_move = -10
+        self.reward_illegal_move = -1
         self.reward_legal_move = 0
     
     def reset(self):
