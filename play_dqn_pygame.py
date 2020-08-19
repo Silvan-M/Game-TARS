@@ -76,7 +76,32 @@ class play_dqn_pygame:
         rect = text.get_rect()
         rect.center = (x+w/2, y+h/2)
         self.screen.blit(text,rect)
+
+    def addButtonCallBack(self, message,x_center,y_center,w,h,path=None):
+        mouse = pygame.mouse.get_pos()
+        x = x_center - 0.5*w
+        y = y_center - 0.5*h
+
+        # Detect mouse hover
+        if y < mouse[1] < y+h and x < mouse[0] < x+w:
+            # Detect mouse press
+            if self.mouseDidPress and path != None:
+                pygame.draw.rect(self.screen, self.lightRed, [x, y, w, h])
+                self.currentScreenFunction = action
+                self.mouseDidPress = False
+                return(path)
+            else:
+                # Hover effect
+                    pygame.draw.rect(self.screen, self.White, [x, y, w, h], 2)
+        else:
+            pygame.draw.rect(self.screen, self.Teal, [x, y, w, h], 2)
         
+        font = pygame.font.Font("resources/Ailerons-Regular.otf", 20)
+        text = font.render(message, True, self.White)
+        rect = text.get_rect()
+        rect.center = (x+w/2, y+h/2)
+        self.screen.blit(text,rect)    
+
     def addText(self, message, fontstring, size, color, x, y):
         font = pygame.font.Font(fontstring, size)
         text = font.render(message, True, color)
@@ -202,7 +227,7 @@ class play_dqn_pygame:
                 self.currentScreenFunction = self.endGame
 
 
-    def ticTacToePvA(self,model):
+    def ticTacToePvA(self):
         if self.first:
             self.first = False
             # (Re)set Variables for TTT
@@ -217,7 +242,7 @@ class play_dqn_pygame:
 
             self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-            model_name = "model.2020.08.11-10.34.15-N.500"
+            model_name = self.ModelMenu()
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             tf.saved_model.load(directory)
 
@@ -287,7 +312,7 @@ class play_dqn_pygame:
 
             self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-            model_name = "model.2020.08.11-10.34.15-N.500"
+            model_name = self.ModelMenu()
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             tf.saved_model.load(directory)
             
@@ -341,40 +366,56 @@ class play_dqn_pygame:
                 self.previousGame = self.ticTacToeAvA
                 self.currentScreenFunction = self.endGame
     
-    def scrollBar(self, page, item):
+    def scrollBar(self, page, item, mode):
         if self.first:
             self.first = False
             self.checkpage = -1
             self.page = page
             self.item = item
+            self.mode = mode
         self.screen.fill(self.Black)
         self.addButton("Back", 70 , 565, 100, 30, self.back)
-        if self.page <= (len(item)/3)-1:
+        if self.page <= (len(item)//3)-1:
            
             self.addButton('Next', 600, 500, 70, 30, self.page)
         if self.page != 0:
             self.addButton('Previous', 200, 500, 110, 30, self.page)
         print(self.page)
-        if self.checkpage != self.page:
- 
-            self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
-            try:
-                self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
-            except IndexError:
-                print('EOF')
-            try:
-                self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
-            except IndexError:
-                print('EOF')
-            checkpage = page
-        self.addText("Page "+str(self.page+1)+' of '+str((len(item)//3)+1), self.ailerons, 15, self.White, 400, 500)
+        if mode != 'model':
+            if self.checkpage != self.page:
+    
+                self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
+                try:
+                    self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                try:
+                    self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                checkpage = page
+            self.addText("Page "+str(self.page+1)+' of '+str((len(item)//3)+1), self.ailerons, 15, self.White, 400, 500)
+        else:
+            if self.checkpage != self.page:
+    
+                self.addButtonCallBack(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
+                try:
+                    self.addButtonCallBack(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                try:
+                    self.addButtonCallBack(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                checkpage = page
+            self.addText("Page "+str(self.page+1)+' of '+str((len(item)//3)+1), self.ailerons, 15, self.White, 400, 500)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
     def ticTacToeMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
         self.addText("Choose a mode.", self.blanka, 60, self.White, 400, 100)
         self.addButton("Player vs Player", 400, 200, 400, 40, self.ticTacToePvP)
-        self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacPvA)
+        self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacToePvA)
         self.addButton("AI vs AI", 400, 400, 400, 40, self.ticTacToeAvA)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
     def ModelMenu(self):
@@ -385,9 +426,12 @@ class play_dqn_pygame:
         MatModel = []
         for i in range(len(models)):
             MatModel.append([models[i],self.back])
-        self.scrollBar(0,MatModel)
+        return(self.scrollBar(0,MatModel, 'model'))
+
     def scrollbarMenu(self):
-        self.scrollBar(0,[['1',self.back],['2',self.back],['3',self.back],['4',self.back],['5',self.back]])
+        self.scrollBar(0,[['1',self.back],['2',self.back],['3',self.back],['4',self.back],['5',self.back]],'x')
+    
+
     def startMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
@@ -395,8 +439,8 @@ class play_dqn_pygame:
         # Add necessary buttons
         self.addText("G A M E   T A R S", self.anurati, 80, self.White, 400, 100)
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
-        #self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
-        self.addButton("TEST", 400, 300, 400, 40, self.ModelMenu)
+        self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
+        #self.addButton("TEST", 400, 300, 400, 40, self.ModelMenu)
         self.addButton('Tetris (Work in Progress)', 400, 350, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake (Work in Progress)', 400, 400, 400, 40, self.ticTacToeMenu)
 
