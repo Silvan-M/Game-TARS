@@ -347,14 +347,15 @@ class play_dqn_pygame:
             self.checkpage = -1
             self.page = page
             self.item = item
+        amount_pages = len(item)//3
+        if len(item)%3 != 0:
+            amount_pages += 1
         self.screen.fill(self.Black)
         self.addButton("Back", 70 , 565, 100, 30, self.back)
-        if self.page <= (len(item)/3)-1:
-           
+        if self.page+1 <= amount_pages-1:
             self.addButton('Next', 600, 500, 70, 30, self.page)
         if self.page != 0:
             self.addButton('Previous', 200, 500, 110, 30, self.page)
-        print(self.page)
         if self.checkpage != self.page:
  
             self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
@@ -367,8 +368,9 @@ class play_dqn_pygame:
             except IndexError:
                 print('EOF')
             checkpage = page
-        self.addText("Page "+str(self.page+1)+' of '+str((len(item)//3)+1), self.ailerons, 15, self.White, 400, 500)
+        self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
+    
     def ticTacToeMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
@@ -377,6 +379,7 @@ class play_dqn_pygame:
         self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacPvA)
         self.addButton("AI vs AI", 400, 400, 400, 40, self.ticTacToeAvA)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
+    
     def ModelMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
