@@ -340,6 +340,7 @@ class play_dqn_pygame:
                 self.won = 2
                 self.previousGame = self.ticTacToeAvA
                 self.currentScreenFunction = self.endGame
+    
     def scrollBar(self, page, item):
         if self.first:
             self.first = False
@@ -356,13 +357,13 @@ class play_dqn_pygame:
         print(self.page)
         if self.checkpage != self.page:
  
-            self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 400, 40, item[(3*(self.page+1))-3][1])
+            self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
             try:
-                self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 400, 40, item[(3*(self.page+1))-3][1])
+                self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
             except IndexError:
                 print('EOF')
             try:
-                self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 400, 40, item[(3*(self.page+1))-3][1])
+                self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
             except IndexError:
                 print('EOF')
             checkpage = page
@@ -379,7 +380,7 @@ class play_dqn_pygame:
     def ModelMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
-        models = os.listdir(r'C:\Users\41763\Desktop\Game-TARS\tictactoe\models')
+        models = os.listdir(r'tictactoe/models')
         #models = ['1','2','3','4','5']
         MatModel = []
         for i in range(len(models)):
