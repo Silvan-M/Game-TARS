@@ -36,6 +36,8 @@ class play_dqn_pygame:
 
         # Variable for checking if first time of displaying a scene
         self.first = True
+        # This is a nasty workaround, please don't tell anyone
+        self.reallyFirst = True
 
     # DISPLAY FUNCTIONS: Frequently used structures will be defined here as a function
 
@@ -85,6 +87,7 @@ class play_dqn_pygame:
         # Detect mouse hover
         if y < mouse[1] < y+h and x < mouse[0] < x+w:
             # Detect mouse press
+            print(path)
             if self.mouseDidPress and path != None:
                 pygame.draw.rect(self.screen, self.lightRed, [x, y, w, h])
                 self.mouseDidPress = False
@@ -177,6 +180,7 @@ class play_dqn_pygame:
         self.addButton("Play again", 400, 300, 400, 40, self.previousGame)
         self.addButton("Menu", 400, 400, 400, 40, self.back)
         self.first = True
+        self.reallyFirst = True
 
 
     def ticTacToePvP(self):
@@ -229,143 +233,157 @@ class play_dqn_pygame:
 
     def ticTacToePvA(self):
         if self.first:
-            self.first = False
-            # (Re)set Variables for TTT
-            self.state = [0,0,0,0,0,0,0,0,0]
-            self.tictactoe = g.tictactoe()
-            self.activePlayer = 0
-            self.illegalmove = False
-            self.won = -1 # -1: Game in progress, 0: Cross won, 1:  Circle won, 3: Tie
+            if self.reallyFirst:
+                self.first = False
+                # (Re)set Variables for TTT
+                self.state = [0,0,0,0,0,0,0,0,0]
+                self.tictactoe = g.tictactoe()
+                self.activePlayer = 0
+                self.illegalmove = False
+                self.won = -1 # -1: Game in progress, 0: Cross won, 1:  Circle won, 3: Tie
 
-            # Initialize DQN
-            state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
+                # Initialize DQN
+                state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
-            self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-            self.first = True
+                self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+
+                self.subpath = "tictactoe"
+            self.first = self.reallyFirst
             model_name = self.ModelMenu()
-            directory = "tictactoe/models/"+model_name+"/TrainNet/"
-            tf.saved_model.load(directory)
+            self.first = True
+            #print(model_name)
+            if model_name:
+                directory = "tictactoe/models/"+model_name+"/TrainNet/"
+                self.tictactoeDQN.model = tf.saved_model.load(directory)
+                print("TURNED OFF FIRST")
+                self.first = False
+            self.counter = 0
+            self.reallyFirst = False
 
-            self.first = False
-
-        # Clear screen and set background color
-        self.screen.fill(self.Black)
-        action = -1
-        if self.activePlayer == 1:
-            action = self.checkForTouch()
-
-        msg = "AI's turn!"
-        if self.illegalmove:
+        else:
+            # Clear screen and set background color
+            self.screen.fill(self.Black)
+            action = -1
             if self.activePlayer == 1:
-                msg = "Cross: Illegal move! Try again!"
-            else:
-                msg = "Circle: Illegal move! Random action!"
-        elif self.activePlayer == 1:
-            msg = "Circle's turn!"
+                action = self.checkForTouch()
 
-        self.addButton("Back", 70 ,565, 100, 30, self.back)
-        self.addText(msg, self.blanka, 30, self.White, 400, 50)
-        self.drawBoard()
-
-        if self.activePlayer == 0:
+            msg = "AI's turn!"
             if self.illegalmove:
-                action = random.randint(0,8)
-            else:
-                action = self.tictactoeDQN.get_action(self.state, 0)
-        
-        if action != -1:
-            output = self.tictactoe.step_once(action,self.activePlayer)
-            
-            self.state = output[0]
-            self.illegalmove = output[5]
-            self.activePlayer = output[6]
+                if self.activePlayer == 1:
+                    msg = "Cross: Illegal move! Try again!"
+                else:
+                    msg = "Circle: Illegal move! Random action!"
+            elif self.activePlayer == 1:
+                msg = "Circle's turn!"
 
-            if output[3]:
-                # Cross won
-                self.won = 0
-                self.previousGame = self.ticTacToePvA
-                self.currentScreenFunction = self.endGame
-            elif output[4]:
-                # Circle won
-                self.won = 1
-                self.previousGame = self.ticTacToePvA
-                self.currentScreenFunction = self.endGame
-            elif output[2]:
-                # Tie
-                self.won = 2
-                self.previousGame = self.ticTacToePvA
-                self.currentScreenFunction = self.endGame
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
+            self.addText(msg, self.blanka, 30, self.White, 400, 50)
+            self.drawBoard()
+
+            if self.activePlayer == 0:
+                if self.illegalmove:
+                    action = random.randint(0,8)
+                else:
+                    action = self.tictactoeDQN.get_action(self.state, 0)
+            
+            if action != -1:
+                output = self.tictactoe.step_once(action,self.activePlayer)
+                
+                self.state = output[0]
+                self.illegalmove = output[5]
+                self.activePlayer = output[6]
+
+                if output[3]:
+                    # Cross won
+                    self.won = 0
+                    self.previousGame = self.ticTacToePvA
+                    self.currentScreenFunction = self.endGame
+                elif output[4]:
+                    # Circle won
+                    self.won = 1
+                    self.previousGame = self.ticTacToePvA
+                    self.currentScreenFunction = self.endGame
+                elif output[2]:
+                    # Tie
+                    self.won = 2
+                    self.previousGame = self.ticTacToePvA
+                    self.currentScreenFunction = self.endGame
 
     def ticTacToeAvA(self):
         if self.first:
-            self.first = False
-            # (Re)set Variables for TTT
-            self.state = [0,0,0,0,0,0,0,0,0]
-            self.tictactoe = g.tictactoe()
-            self.activePlayer = 0
-            self.illegalmove = False
-            self.won = -1 # -1: Game in progress, 0: Cross won, 1:  Circle won, 3: Tie
+            if self.reallyFirst:
+                # (Re)set Variables for TTT
+                self.state = [0,0,0,0,0,0,0,0,0]
+                self.tictactoe = g.tictactoe()
+                self.activePlayer = 0
+                self.illegalmove = False
+                self.won = -1 # -1: Game in progress, 0: Cross won, 1:  Circle won, 3: Tie
 
-            # Initialize DQN
-            print("Initialized DQN!")
-            state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
+                # Initialize DQN
+                state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
-            self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-            self.first = True
+                self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+                
+                self.subpath = "tictactoe"
+            self.first = self.reallyFirst
             model_name = self.ModelMenu()
-            print(model_name)
-            directory = "tictactoe/models/"+model_name+"/TrainNet/"
-            tf.saved_model.load(directory)
-            
+            self.first = True
+            #print(model_name)
+            if model_name:
+                directory = "tictactoe/models/"+model_name+"/TrainNet/"
+                self.tictactoeDQN.model = tf.saved_model.load(directory)
+                print("TURNED OFF FIRST")
+                self.first = False
             self.counter = 0
+            self.reallyFirst = False
+        else:
+            self.counter += 1
 
-        self.counter += 1
-
-        # Clear screen and set background color
-        self.screen.fill(self.Black)
-        action = -1
-        msg = "Cross's turn!"
-        if self.illegalmove:
-            if self.activePlayer == 1:
-                msg = "Cross: Illegal move! Random action!"
-            else:
-                msg = "Circle: Illegal move! Random action!"
-        elif self.activePlayer == 1:
-            msg = "Circle's turn!"
-
-        self.addButton("Back", 70 ,565, 100, 30, self.back)
-        self.addText(msg, self.blanka, 30, self.White, 400, 50)
-        self.drawBoard()
-        
-        # Slow down AI to only take action every 30 frames (1 sec), otherwise you can't observe the game
-        if self.counter % 30 == 0:
+            # Clear screen and set background color
+            self.screen.fill(self.Black)
+            action = -1
+            msg = "Cross's turn!"
             if self.illegalmove:
-                action = random.randint(0,8)
-            else:
-                action = self.tictactoeDQN.get_action(self.state, 0)
-        
-        if action != -1:
-            output = self.tictactoe.step_once(action,self.activePlayer)
-            
-            self.state = output[0]
-            self.illegalmove = output[5]
-            self.activePlayer = output[6]
+                if self.activePlayer == 1:
+                    msg = "Cross: Illegal move! Random action!"
+                else:
+                    msg = "Circle: Illegal move! Random action!"
+            elif self.activePlayer == 1:
+                msg = "Circle's turn!"
 
-            if output[3]:
-                # Cross won
-                self.won = 0
-                self.previousGame = self.ticTacToeAvA
-                self.currentScreenFunction = self.endGame
-            elif output[4]:
-                # Circle won
-                self.won = 1
-                self.previousGame = self.ticTacToeAvA
-                self.currentScreenFunction = self.endGame
-            elif output[2]:
-                # Tie
-                self.won = 2
-                self.previousGame = self.ticTacToeAvA
-                self.currentScreenFunction = self.endGame
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
+            self.addText(msg, self.blanka, 30, self.White, 400, 50)
+            self.drawBoard()
+            
+            # Slow down AI to only take action every 30 frames (1 sec), otherwise you can't observe the game
+            if self.counter % 30 == 0:
+                if self.illegalmove:
+                    action = random.randint(0,8)
+                else:
+                    action = self.tictactoeDQN.get_action(self.state, 0)
+            
+            if action != -1:
+                output = self.tictactoe.step_once(action,self.activePlayer)
+                
+                self.state = output[0]
+                self.illegalmove = output[5]
+                self.activePlayer = output[6]
+
+                if output[3]:
+                    # Cross won
+                    self.won = 0
+                    self.previousGame = self.ticTacToeAvA
+                    self.currentScreenFunction = self.endGame
+                elif output[4]:
+                    # Circle won
+                    self.won = 1
+                    self.previousGame = self.ticTacToeAvA
+                    self.currentScreenFunction = self.endGame
+                elif output[2]:
+                    # Tie
+                    self.won = 2
+                    self.previousGame = self.ticTacToeAvA
+                    self.currentScreenFunction = self.endGame
     
     def scrollBar(self, page, item, mode):
         if self.first:
@@ -384,7 +402,29 @@ class play_dqn_pygame:
             self.addButton('Previous', 200, 500, 110, 30, self.page)
         if mode != 'model':
             if self.checkpage != self.page:
-    
+                callback1 = self.addButtonCallBack(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, str(item[(3*(self.page+1))-3][0]))
+                try:
+                    callback2 = self.addButtonCallBack(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, str(item[(3*(self.page+1))-2][0]))
+                    if callback2:
+                        return callback2
+                except IndexError:
+                    print('EOF')
+                try:
+                    callback3 = self.addButtonCallBack(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, str(item[(3*(self.page+1))-1][0]))
+                    if callback3:
+                        return callback3
+                except IndexError:
+                    print('EOF')
+                checkpage = page
+
+                if callback1:
+                    return callback1
+
+            self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
+        else:
+            if self.checkpage != self.page:
+                
                 self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
                 try:
                     self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
@@ -392,21 +432,6 @@ class play_dqn_pygame:
                     print('EOF')
                 try:
                     self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
-                except IndexError:
-                    print('EOF')
-                checkpage = page
-            self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
-            self.addButton("Back", 70 ,565, 100, 30, self.back)
-        else:
-            if self.checkpage != self.page:
-    
-                self.addButtonCallBack(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
-                try:
-                    self.addButtonCallBack(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
-                except IndexError:
-                    print('EOF')
-                try:
-                    self.addButtonCallBack(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
                 except IndexError:
                     print('EOF')
                 checkpage = self.page
@@ -424,11 +449,11 @@ class play_dqn_pygame:
     def ModelMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
-        models = os.listdir(r'tictactoe/models')
+        models = os.listdir(r'{}/models'.format(self.subpath))
         #models = ['1','2','3','4','5']
         MatModel = []
         for i in range(len(models)):
-            MatModel.append([models[i],self.back])
+            MatModel.append([models[i],None])
         return(self.scrollBar(0,MatModel, 'x'))
 
     def scrollbarMenu(self):
@@ -442,12 +467,13 @@ class play_dqn_pygame:
         self.addText("G A M E   T A R S", self.anurati, 80, self.White, 400, 100)
         #self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
-        self.addButton("TEST", 400, 350, 400, 40, self.ModelMenu)
+        self.addButton("Tetris (Work in Progress)", 400, 350, 400, 40, self.ticTacToeMenu)
         #self.addButton('Tetris (Work in Progress)', 400, 350, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake (Work in Progress)', 400, 400, 400, 40, self.ticTacToeMenu)
 
     def back(self):
         self.first = True
+        self.reallyFirst = True
         self.currentScreenFunction = self.startMenu
 
     def run(self):

@@ -47,7 +47,7 @@ def play_tictactoe(state, environment, TrainNet, TargetNet, epsilon, copy_step):
             TargetNet.copy_weights(TrainNet) 
     return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
 
-def main():
+def main(testing):
     # Dict of all games for generalization purposes, values are:
     # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func
     games = {"tictactoe":[play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe]}
@@ -69,6 +69,14 @@ def main():
     
     TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
     TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+
+    if testing:
+        model_name = "model.2020.08.12-19.42.21-I.100-N.1000"
+        directory = "tictactoe/models/"+model_name+"/TrainNet/"
+        TrainNet.model = tf.saved_model.load(directory)
+        directory = "tictactoe/models/"+model_name+"/TargetNet/"
+        TargetNet.model = tf.saved_model.load(directory)
+          
 
     N = int(input("How many episodes do you want to train?\n"))
     total_rewards = np.empty(N)
@@ -109,7 +117,8 @@ def main():
     game[3](log_path)
 
 if __name__ == '__main__':
-    main()
+    # Set Parameter to true if you want to load the model on the path above and test it
+    main(True)
 
 
 
