@@ -77,7 +77,7 @@ class play_dqn_pygame:
         rect.center = (x+w/2, y+h/2)
         self.screen.blit(text,rect)
 
-    def addButtonCallBack(self, message,x_center,y_center,w,h,path=None):
+    def addButtonCallBack(self, message,x_center,y_center,w,h,path = None):
         mouse = pygame.mouse.get_pos()
         x = x_center - 0.5*w
         y = y_center - 0.5*h
@@ -87,8 +87,8 @@ class play_dqn_pygame:
             # Detect mouse press
             if self.mouseDidPress and path != None:
                 pygame.draw.rect(self.screen, self.lightRed, [x, y, w, h])
-                self.currentScreenFunction = action
                 self.mouseDidPress = False
+                print(path)
                 return(path)
             else:
                 # Hover effect
@@ -241,7 +241,7 @@ class play_dqn_pygame:
             state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
             self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-
+            self.first = True
             model_name = self.ModelMenu()
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             tf.saved_model.load(directory)
@@ -311,8 +311,9 @@ class play_dqn_pygame:
             state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
             self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-
+            self.first = True
             model_name = self.ModelMenu()
+            print(model_name)
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             tf.saved_model.load(directory)
             
@@ -370,8 +371,8 @@ class play_dqn_pygame:
         if self.first:
             self.first = False
             self.checkpage = -1
-            self.page = page
             self.item = item
+            self.page = page
         amount_pages = len(item)//3
         if len(item)%3 != 0:
             amount_pages += 1
@@ -381,21 +382,36 @@ class play_dqn_pygame:
             self.addButton('Next', 600, 500, 70, 30, self.page)
         if self.page != 0:
             self.addButton('Previous', 200, 500, 110, 30, self.page)
-        if self.checkpage != self.page:
- 
-            self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
-            try:
-                self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
-            except IndexError:
-                print('EOF')
-            try:
-                self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
-            except IndexError:
-                print('EOF')
-            checkpage = page
-        self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
-        self.addButton("Back", 70 ,565, 100, 30, self.back)
+        if mode != 'model':
+            if self.checkpage != self.page:
     
+                self.addButton(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
+                try:
+                    self.addButton(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                try:
+                    self.addButton(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                checkpage = page
+            self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
+        else:
+            if self.checkpage != self.page:
+    
+                self.addButtonCallBack(str(item[(3*(self.page+1))-3][0]), 400, 200, 550, 40, item[(3*(self.page+1))-3][1])
+                try:
+                    self.addButtonCallBack(str(item[(3*(self.page+1))-2][0]), 400, 300, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                try:
+                    self.addButtonCallBack(str(item[(3*(self.page+1))-1][0]), 400, 400, 550, 40, item[(3*(self.page+1))-3][1])
+                except IndexError:
+                    print('EOF')
+                checkpage = self.page
+            self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
     def ticTacToeMenu(self):
         # Clear screen and set background color
         self.screen.fill(self.Black)
@@ -413,11 +429,10 @@ class play_dqn_pygame:
         MatModel = []
         for i in range(len(models)):
             MatModel.append([models[i],self.back])
-        return(self.scrollBar(0,MatModel, 'model'))
+        return(self.scrollBar(0,MatModel, 'x'))
 
     def scrollbarMenu(self):
         self.scrollBar(0,[['1',self.back],['2',self.back],['3',self.back],['4',self.back],['5',self.back]],'x')
-    
 
     def startMenu(self):
         # Clear screen and set background color
@@ -425,10 +440,10 @@ class play_dqn_pygame:
         
         # Add necessary buttons
         self.addText("G A M E   T A R S", self.anurati, 80, self.White, 400, 100)
-        self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
+        #self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
-        #self.addButton("TEST", 400, 300, 400, 40, self.ModelMenu)
-        self.addButton('Tetris (Work in Progress)', 400, 350, 400, 40, self.ticTacToeMenu)
+        self.addButton("TEST", 400, 350, 400, 40, self.ModelMenu)
+        #self.addButton('Tetris (Work in Progress)', 400, 350, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake (Work in Progress)', 400, 400, 400, 40, self.ticTacToeMenu)
 
     def back(self):
