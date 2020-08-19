@@ -25,7 +25,7 @@ class tictactoe:
         # Enable debugging if necessary
         self.debugging = False
         
-        # TicTacToe specific variables
+        # TicTacToe rewards
         self.reward_tie = 0.5
         self.reward_win = 1
         self.reward_lose = -1
