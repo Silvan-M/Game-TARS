@@ -18,6 +18,7 @@ def plotTicTacToe(log_path):
     win_count = []
     lose_count = []
     tie_count = []
+    illegal_move_count = []
     N_start_index = log_path.find("-N.")
     N = int(log_path[N_start_index+3:-4])
     log_interval_start_index = log_path.find("-I.")
@@ -32,12 +33,23 @@ def plotTicTacToe(log_path):
         win_count.append(data[i][5])
         lose_count.append(data[i][6])
         tie_count.append(log_interval-data[i][5]-data[i][6])
+        illegal_move_count.append(data[i][7])
     #plt.plot(n, total_reward, 'r', label="Total Reward") #plot data
     #plt.plot(n, epsilon, 'g', label="Epsilon (amplified x1000)")
     #plt.plot(n, avg_reward, 'b', label="Avg. Reward")
     #plt.plot(n, lose, 'y', label="Lose (30)")
 
-    
+    plt.figure(0)
+    plotIllegalMove = False
+    if plotIllegalMove:
+        plt.plot(n, illegal_move_count, 'k', label="Illegal moves per "+str(log_interval))
+        plt.title("Log N"+str(N))
+        plt.xlabel("Illegal Moves")
+        plt.ylabel("Value")
+        plt.legend(loc="upper right")
+        plt.savefig('tictactoe/figures/fig.'+timeAndInfo+"ILLEGALMOVES.pdf")
+
+        plt.figure(1)
     plt.plot(n, win_count, 'g', label="Wins per "+str(log_interval))
     plt.plot(n, lose_count, 'r', label="Losses per "+str(log_interval))
     plt.plot(n, tie_count, 'k', label="Ties per "+str(log_interval))

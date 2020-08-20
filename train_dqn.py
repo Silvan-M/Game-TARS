@@ -106,8 +106,8 @@ def main(testing):
             print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last "+str(log_interval)+"):", avg_rewards,
                   "episode loss: ", losses, "wins: ",win_count, "lose: ", lose_count, "illegal moves: ",illegal_moves)
             f = open(log_path, "a")
+            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
             illegal_moves = 0
-            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+"\n")
             f.close()
             win_count = 0
             lose_count = 0
