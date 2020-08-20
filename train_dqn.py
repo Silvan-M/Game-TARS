@@ -19,6 +19,8 @@ def play_tictactoe(state, environment, TrainNet, TargetNet, epsilon, copy_step):
     while not done: # observes until game is done 
         action = TrainNet.get_action(observations, epsilon) # TrainNet determines favorable action
         prev_observations = observations # saves observations
+        # Uncomment following line if you want to test how a purely random agent performs
+        # action = random.randint(0,8)
         result = environment.step_random(action)
         observations = result[0]
         reward = result[1]
