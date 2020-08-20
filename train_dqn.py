@@ -118,7 +118,7 @@ def main(testing):
 
 if __name__ == '__main__':
     # Set Parameter to true if you want to load the model on the path above and test it
-    main(True)
+    main(False)
 
 
 
