@@ -371,10 +371,22 @@ class play_dqn_pygame:
             
             # Slow down AI to only take action every 30 frames (1 sec), otherwise you can't observe the game
             if self.counter % 30 == 0:
-                if self.illegalmove:
-                    action = random.randint(0,8)
+                randMove, q = self.tictactoeDQN.get_q(np.array(self.tictactoe.convert0neHot(self.state)), 0) # TrainNet determines favorable action
+                action = 0
+                
+                if not randMove:
+                    q_list_prob=[]
+                    q_list_min = np.min(q)
+                    q_list_max = np.max(q)
+                    for qi in q:
+                        q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
+                    for i, p in enumerate(q_list_prob):
+                        if self.tictactoe.isIllegalMove(i):
+                            q_list_prob[i] = - 1
+                    action = np.argmax(q_list_prob)
+                    
                 else:
-                    action = self.tictactoeDQN.get_action(self.state, 0)
+                    action = q
             
             if action != -1:
                 output = self.tictactoe.step_once(action,self.activePlayer)

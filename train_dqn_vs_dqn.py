@@ -13,16 +13,34 @@ def play_tictactoe(state, environment, NetworkList, epsilon, copy_step):
     rewards = [0,0]
     iter = [0,0]
     done = False
-    observations = state
+    observations = environment.convert0neHot(state)
     losses = [list(),list()]
     illegal_moves = [0,0]
     activePlayer = 0
     action = [int(),int()]
     while not done: # observes until game is done 
-        action[activePlayer] = NetworkList[activePlayer][0].get_action(observations, epsilon) # TrainNet determines favorable action
+
+        randMove, q = NetworkList[activePlayer][0].get_q(np.array(observations), epsilon) # TrainNet determines favorable action
+        action[activePlayer] = 0
+        
+        if not randMove:
+            q_list_prob=[]
+            q_list_min = np.min(q)
+            q_list_max = np.max(q)
+            for qi in q:
+                q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
+            for i, p in enumerate(q_list_prob):
+                if environment.isIllegalMove(i):
+                    q_list_prob[i] = - 1
+            action[activePlayer] = np.argmax(q_list_prob)
+            
+        else:
+            action[activePlayer] = q
+        
+        
         prev_observations = observations # saves observations
         result = environment.step_once(action[activePlayer],activePlayer)
-        observations = result[0]
+        observations = environment.convert0neHot(result[0])
         reward = result[1]
         done = result[2]
         illegalmove = result[5]
