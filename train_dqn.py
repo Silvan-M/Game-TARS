@@ -37,13 +37,8 @@ class train_dqn():
                 action = q
 
             prev_observations = observations # saves observations
-            
-            # Uncomment following line if you want to test how a purely random agent performs
-            # action = random.randint(0,8)
             result = environment.step_random(action)
             observations = environment.convert0neHot(result[0])
-            # print("BEFORE: ",result[0])
-            # print("AFTER: ",observations)
             reward = result[1]
             done = result[2]
             illegalmove = result[5]
