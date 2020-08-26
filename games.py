@@ -10,23 +10,23 @@ class tictactoe:
         self.state = state
         gamma = 0.9
         copy_step = 50
-        num_state = 9
+        num_state = 27
         num_actions = 9
-        hidden_units = [27,27,27]
+        hidden_units = [27*9]
         max_experience = 50000
         min_experience = 100
         batch_size = 1
         alpha = 0.01
-        epsilon = 0.9
-        min_epsilon = 0.2
-        decay = 0.99
+        epsilon = 0
+        min_epsilon = 0
+        decay = 0
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
 
         # Enable debugging if necessary
         self.debugging = False
         
         # TicTacToe rewards
-        self.reward_tie = 0.5
+        self.reward_tie = 0.1
         self.reward_win = 1
         self.reward_lose = -1
         self.reward_illegal_move = -1
@@ -34,6 +34,21 @@ class tictactoe:
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+    def convert0neHot(self, observation):
+        oneHot = 27*[0]
+        for i in range(len(observation)):
+            if observation[i] == 0:
+                oneHot[i+17] = 1
+            elif observation[i] == 1:
+                oneHot[i] = 1
+            else:
+                oneHot[i+8] = 1
+        return oneHot
+
+    def isIllegalMove(self, action):
+        return(self.state[action] != 0)
 
     def checkWhoWon(self):
         #check if previous move caused a win on vertical line 

@@ -15,18 +15,35 @@ class train_dqn():
         rewards = 0
         iter = 0
         done = False
-        observations = state
+        observations = environment.convert0neHot(state)
         losses = list()
         illegal_moves = 0
         while not done: # observes until game is done 
-            action = self.TrainNet.get_action(np.array(observations), epsilon) # TrainNet determines favorable action
-            print(np.array(observations))
-            print(np.array(observations).shape)
+            randMove, q = self.TrainNet.get_q(np.array(observations), epsilon) # TrainNet determines favorable action
+            action = 0
+            
+            if not randMove:
+                q_list_prob=[]
+                q_list_min = np.min(q)
+                q_list_max = np.max(q)
+                for qi in q:
+                    q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
+                for i, p in enumerate(q_list_prob):
+                    if environment.isIllegalMove(i):
+                        q_list_prob[i] = - 1
+                action = np.argmax(q_list_prob)
+                
+            else:
+                action = q
+
             prev_observations = observations # saves observations
+            
             # Uncomment following line if you want to test how a purely random agent performs
             # action = random.randint(0,8)
             result = environment.step_random(action)
-            observations = result[0]
+            observations = environment.convert0neHot(result[0])
+            # print("BEFORE: ",result[0])
+            # print("AFTER: ",observations)
             reward = result[1]
             done = result[2]
             illegalmove = result[5]
@@ -147,7 +164,7 @@ class train_dqn():
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func
-        games = {"tictactoe":[self.playModel2,g.tictactoe,"tictactoe",log.plotTicTacToe]}
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
         game = games["tictactoe"]
@@ -164,14 +181,14 @@ class train_dqn():
         # batch_size: amount of data processed at once
         # alpha: learning rate, defines how drastically it changes weights
         
-        # self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
-        # self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+        self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+        self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
         # self.TrainNet = dqn.DQNAgent()
         # self.TargetNet = dqn.DQNAgent()
 
-        self.TargetNet = dqn.agent()
-        self.TrainNet = dqn.agent()
+        # self.TargetNet = dqn.agent()
+        # self.TrainNet = dqn.agent()
 
         load = False
         if load:

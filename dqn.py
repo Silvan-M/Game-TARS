@@ -85,7 +85,13 @@ class DQN:
             return np.random.choice(self.num_actions) # selects a random choice (exploration)
         else:
             a = self.predict(np.atleast_2d(states))[0]
-            return np.argmax(self.predict(np.atleast_2d(states))[0]) # selects a greedy choice (max value computed by the network - exploitation)
+            return np.argmax(a) # selects a greedy choice (max value computed by the network - exploitation)
+
+    def get_q(self, states, epsilon):
+        if np.random.random() < epsilon: # compares a random number with the exploration factor which gets reduced over time to increase exploitation
+            return True, np.random.choice(self.num_actions) # selects a random choice (exploration)
+        else:
+            return False, self.predict(np.atleast_2d(states))[0] # selects a greedy choice (max value computed by the network - exploitation)
 
     def add_experience(self, exp): # memorizes experience, if the max amount is exceeded the oldest element gets deleted
         if len(self.experience['s']) >= self.max_experiences:
