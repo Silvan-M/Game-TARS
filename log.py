@@ -1,5 +1,7 @@
 import os
 import matplotlib.pyplot as plt
+import numpy.polynomial.polynomial as nps
+import numpy as np
 
 def plotTicTacToe(log_path):
     # Filename is used to create 
@@ -57,5 +59,10 @@ def plotTicTacToe(log_path):
     plt.xlabel("Episodes")
     plt.ylabel("Value")
     plt.legend(loc="upper right")
+    z = nps.polyfit(range(len(win_count)), win_count, 1)
+    p = np.poly1d(win_count)
+    x = np.arange(10)
+    y = p(x)
+    plt.plot(x,y)
     plt.savefig('tictactoe/figures/fig.'+timeAndInfo+".pdf")
     plt.show()
