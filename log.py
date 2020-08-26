@@ -58,11 +58,25 @@ def plotTicTacToe(log_path):
     plt.title("Log N"+str(N))
     plt.xlabel("Episodes")
     plt.ylabel("Value")
-    plt.legend(loc="upper right")
-    z = nps.polyfit(range(len(win_count)), win_count, 1)
-    p = np.poly1d(win_count)
-    x = np.arange(10)
-    y = p(x)
-    plt.plot(x,y)
+    
+    dim = 1
+    y = win_count
+    x = (np.arange(len(win_count)))*100
+    coef = np.polyfit(x,y,dim)
+    poly1d_fn = np.poly1d(coef) 
+    plt.plot(x+100, poly1d_fn(x), '--g', label = "Slope = "+str(round(coef[0],3)) )
+
+    y = lose_count
+    x = (np.arange(len(lose_count)))*100
+    coef = np.polyfit(x,y,dim)
+    poly1d_fn = np.poly1d(coef) 
+    plt.plot(x+100, poly1d_fn(x), '--r', label = "Slope = "+str(round(coef[0],3)) )
+    y = tie_count
+    x = (np.arange(len(tie_count)))*100
+    coef = np.polyfit(x,y,dim)
+    poly1d_fn = np.poly1d(coef) 
+    plt.plot(x+100, poly1d_fn(x), '--k', label = "Slope = "+str(round(coef[0],3)) )
+
+    plt.legend(loc="upper right",fontsize = 'x-small')
     plt.savefig('tictactoe/figures/fig.'+timeAndInfo+".pdf")
     plt.show()

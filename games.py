@@ -17,9 +17,9 @@ class tictactoe:
         min_experience = 100
         batch_size = 1
         alpha = 0.01
-        epsilon = 0
-        min_epsilon = 0
-        decay = 0
+        epsilon = 1
+        min_epsilon = 0.01
+        decay = 0.99
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
 
         # Enable debugging if necessary
