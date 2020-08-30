@@ -8,6 +8,8 @@ import log
 import games as g
 import dqn as dqn
 
+# Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
+verbose = 0
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -63,6 +65,17 @@ class train_dqn():
             iter += 1 # increment the counter
             if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
                 self.TargetNet.copy_weights(self.TrainNet) 
+
+            if verbose == 1:
+                if done:
+                    print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}".format(rewards,str(won),str(lose),str(done)))
+            elif verbose == 2:
+                print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}".format(rewards,str(won),str(lose),str(done)))
+            elif verbose == 3:
+                print(environment.state[0:3], "   ", [0,1,2])
+                print(environment.state[3:6], "   ", [3,4,5])
+                print(environment.state[6:9], "   ", [6,7,8])
+                print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}\n".format(rewards,str(won),str(lose),str(done)))
         return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
 
     def playNewModel(self, state, environment, epsilon, copy_step):
