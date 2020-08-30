@@ -10,5 +10,6 @@ Make sure you have following libraries installed:
 - Pygame
 
 Firstly launch `train_dqn.py` to train a AI or `train_dqn_vs_dqn.py` to train AI vs AI.
-Launch `play_dqn_pygame.py` to check out our games in a sleek user interface!
+
+Then launch `play_dqn_pygame.py` to check out our games in a sleek user interface!
 
