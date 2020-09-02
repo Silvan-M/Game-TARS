@@ -1,6 +1,6 @@
 import random
 import time
-
+import min_max_alg as mma
 class tictactoe:
     def __init__(self):
         self.illegalcount = 0
@@ -118,7 +118,8 @@ class tictactoe:
         # print(self.state)
         return [self.state, reward, done, won]  
 
-    def step_random(self, action)  -> list:
+
+    def step(self, action, random = False)  -> list:
         reward = 0
         won = False
         lose = False
@@ -136,7 +137,10 @@ class tictactoe:
         done, winner = self.checkWhoWon()
 
         while (0 in self.state) and not illegalmove and not done:
-            var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+            if random:
+                var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+            else:
+                var = mma.GetMove(self.state, False)
             if self.state[var] == 0:
                 self.state[var] = 2
                 break
@@ -215,6 +219,7 @@ class tictactoe:
             print(self.state[6:9], "   ", [6,7,8])
             print("Done: ", done,"Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
         return [self.state, reward, done, won, lose, illegalmove, activePlayer]
+
 
 class ultimate_tictactoe:
     def __init__(self):

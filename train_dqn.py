@@ -37,7 +37,7 @@ class train_dqn():
                 action = q
 
             prev_observations = observations # saves observations
-            result = environment.step_random(action)
+            result = environment.step(action)
             observations = environment.convert0neHot(result[0])
             reward = result[1]
             done = result[2]
@@ -81,7 +81,7 @@ class train_dqn():
             prev_observations = observations # saves observations
             # Uncomment following line if you want to test how a purely random agent performs
             # action = random.randint(0,8)
-            result = environment.step_random(action)
+            result = environment.step(action)
             observations = result[0]
             state = observations
             reward = result[1]
@@ -127,7 +127,7 @@ class train_dqn():
             prev_observations = observations # saves observations
             # Uncomment following line if you want to test how a purely random agent performs
             # action = random.randint(0,8)
-            result = environment.step_random(action)
+            result = environment.step(action)
             observations = result[0]
             state = observations
             reward = result[1]
