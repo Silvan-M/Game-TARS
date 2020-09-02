@@ -258,27 +258,33 @@ class snake:
         self.reward_death = -100 # Snake dies (runs into wall or itself)
         self.reward_opposite_dir = -1 # Snake tries to go in opposite direction it's heading (not possible in snake)
 
+        self.updateFieldVariable()
+
     def reset(self):
         self.field_size = 20 # 20x20 snake grid
         self.apple = random.randint(0, self.field_size**2-1)
         self.snake = [110]
         self.prevAction = 2
-        self.field = [0]*self.field_size**2
+        self.updateFieldVariable()
 
     def step(self, action):
         # Evaluate action, detect if it hits the wall or itself
         index = self.getIndexOfAction(action)
+        opposite = False
 
         # If snake hits wall or itself give negative reward
         if index == -1:
             # Check if snake wants to go in opposite direction it's heading
             if (self.prevAction == 0 and action == 2) or (self.prevAction == 2 and action == 0) or (self.prevAction == 1 and action == 3) or (self.prevAction == 3 and action == 1):
-                return False, self.reward_opposite_dir, self.getState(action)
+                reward = self.reward_opposite_dir
+                opposite = True
+                index = self.getIndexOfAction(self.prevAction)
             else:
                 return True, self.reward_death, self.getState(action)
 
         # Initialize reward for later manipulation
-        reward = 0
+        if not opposite:
+            reward = 0
 
         # Snake has eaten an apple
         if index == self.apple:
@@ -295,8 +301,9 @@ class snake:
             self.snake.pop(0)
         
         self.updateFieldVariable()
-
-        self.prevAction = action
+        
+        if not opposite:
+            self.prevAction = action
         return False, reward, self.getState(action)
 
     def updateFieldVariable(self):
