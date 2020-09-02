@@ -279,6 +279,8 @@ class snake:
                 reward = self.reward_opposite_dir
                 opposite = True
                 index = self.getIndexOfAction(self.prevAction)
+                if index == -1:
+                    return True, self.reward_death, self.getState(action)
             else:
                 return True, self.reward_death, self.getState(action)
 
