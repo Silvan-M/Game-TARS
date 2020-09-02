@@ -7,6 +7,8 @@ import random
 import log
 import games as g
 import dqn as dqn
+# Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
+verbose = 0
 
 def play_tictactoe(state, environment, NetworkList, epsilon, copy_step):
     environment.reset()
@@ -45,9 +47,6 @@ def play_tictactoe(state, environment, NetworkList, epsilon, copy_step):
         done = result[2]
         illegalmove = result[5]
 
-        exp = {'s': prev_observations, 'a': action[activePlayer], 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
-        NetworkList[activePlayer], losses[activePlayer], iter[activePlayer] = improveNetworks(NetworkList[activePlayer], exp, losses[activePlayer], iter[activePlayer], copy_step)
-
         if illegalmove:
             illegal_moves[activePlayer] += 1
         if result[3] == 1:
@@ -58,28 +57,51 @@ def play_tictactoe(state, environment, NetworkList, epsilon, copy_step):
             lose = True
         else:
             lose = False
-        rewards[activePlayer] += reward        
+
+        if not (reward == environment.reward_tie) or lose or won:
+            exp = {'s': prev_observations, 'a': action[activePlayer], 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
+            NetworkList[activePlayer], losses[activePlayer], iter[activePlayer] = improveNetworks(NetworkList[activePlayer], exp, losses[activePlayer], iter[activePlayer], copy_step)
+
+        rewards[activePlayer] += reward      
 
         # -- Here the DQNs which are not finishing the game will be updated if a game ends. --
         # If DQN 1 wins, update DQN 2 with negative reward
         if won:
-            exp = {'s': prev_observations, 'a': action[1], 'r': -reward, 's2': observations, 'done': done} # reverse reward if won 
+            rewards[0] = environment.reward_win
+            exp = {'s': prev_observations, 'a': action[0], 'r': environment.reward_win, 's2': observations, 'done': done}
+            NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
+
+            rewards[1] = environment.reward_lose
+            exp = {'s': prev_observations, 'a': action[1], 'r': environment.reward_lose, 's2': observations, 'done': done} 
             NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
         # If DQN 2 wins, update DQN 1 with negative reward
         elif lose:
-            exp = {'s': prev_observations, 'a': action[0], 'r': -reward, 's2': observations, 'done': done} # reverse reward if won 
+            rewards[0] = environment.reward_lose
+            exp = {'s': prev_observations, 'a': action[0], 'r': environment.reward_lose, 's2': observations, 'done': done}
             NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
+
+            rewards[1] = environment.reward_win
+            exp = {'s': prev_observations, 'a': action[1], 'r': environment.reward_win, 's2': observations, 'done': done} 
+            NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
         # if Tie improve DQN of player 1 if it's the turn of player 2 and analogously if player 2 wins
         elif reward == environment.reward_tie:
-            if activePlayer == 0:
-                exp = {'s': prev_observations, 'a': action[1], 'r': reward, 's2': observations, 'done': done}
-                NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
-            else:
-                exp = {'s': prev_observations, 'a': action[0], 'r': reward, 's2': observations, 'done': done}
-                NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
+            rewards[0], rewards[1] = reward, reward
+            exp = {'s': prev_observations, 'a': action[1], 'r': reward, 's2': observations, 'done': done}
+            NetworkList[1], _, iter[1] = improveNetworks(NetworkList[1], exp, losses[1], iter[1], copy_step)
+            NetworkList[0], _, iter[0] = improveNetworks(NetworkList[0], exp, losses[0], iter[0], copy_step)
 
         activePlayer = result[6]
-    return rewards[0], mean(losses[0]), won, lose, illegal_moves[0] #returns rewards and average
+        if verbose == 1:
+            if done:
+                print("P0: {0: 3.1f}| P1: {1: 3.1f} | Won: {2:5} | Lose: {3:5} | Done: {4}".format(rewards[0],rewards[1],str(won),str(lose),str(done)))
+        elif verbose == 2:
+            print("P0: {0: 3.1f}| P1: {1: 3.1f} | Won: {2:5} | Lose: {3:5} | Done: {4}".format(rewards[0],rewards[1],str(won),str(lose),str(done)))
+        elif verbose == 3:
+            print(environment.state[0:3], "   ", [0,1,2])
+            print(environment.state[3:6], "   ", [3,4,5])
+            print(environment.state[6:9], "   ", [6,7,8])
+            print("P0: {0: 3.1f}| P1: {1: 3.1f} | Won: {2:5} | Lose: {3:5} | Done: {4}\n".format(rewards[0],rewards[1],str(won),str(lose),str(done)))
+    return rewards[1], mean(losses[1]), won, lose, illegal_moves[1] #returns rewards and average
 
 def improveNetworks(networks, exp, losses, iter, copy_step):
     networks[0].add_experience(exp)# memorizes experience, if the max amount is exceeded the oldest element gets deleted
@@ -146,11 +168,10 @@ def main():
         avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
         illegal_moves += illegal_moves_game
         if (n % log_interval == 0) and (n != 0) or (n == N-1):
-            print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last "+str(log_interval)+"):", avg_rewards,
-                  "episode loss: ", losses, "wins: ",win_count, "lose: ", lose_count, "illegal moves: ",illegal_moves)
+            print("Episode: {0:{1}.0f} | Episode Reward: {2:2.0f} | Eps.: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:2.3f} | Episode Loss: {6:.3f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
             f = open(log_path, "a")
             illegal_moves = 0
-            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+"\n")
+            f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
             f.close()
             win_count = 0
             lose_count = 0

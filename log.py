@@ -26,16 +26,36 @@ def plotTicTacToe(log_path):
     log_interval_start_index = log_path.find("-I.")
     log_interval = int(log_path[log_interval_start_index+3:N_start_index])
 
+    # intvl defines how many values should be taken the average of, this will prevent too much data points in the graph, so by default it is set to 1, but if N gets higher than 100K it will average every 100 values
+    intvl = 1
+
+    if len(data)*log_interval >= 100000:
+        intvl = 100
+        print("Automatically swichted to avg. every 100th value")
+    elif len(data)*log_interval >= 50000:
+        intvl = 10
+        print("Automatically swichted to avg. every 10th value")
+    
+    amount_datapoints = 8
+    avg_data = [0]*amount_datapoints
+
     for i in range(len(data)): #append all data
-        n.append(data[i][0])
-        total_reward.append(data[i][1])
-        epsilon.append(data[i][2]*1000)
-        avg_reward.append(data[i][3])
-        losses.append(data[i][4]/30)
-        win_count.append(data[i][5])
-        lose_count.append(data[i][6])
-        tie_count.append(log_interval-data[i][5]-data[i][6])
-        illegal_move_count.append(data[i][7])
+        for k in range(amount_datapoints):
+            avg_data[k] += data[i][k]
+        if ((i % intvl == 0) and i != 0) or (intvl == 1):
+            for k, v in enumerate(avg_data):
+                avg_data[k] = v/intvl
+
+            n.append(avg_data[0])
+            total_reward.append(avg_data[1])
+            epsilon.append(avg_data[2]*1000)
+            avg_reward.append(avg_data[3])
+            losses.append(avg_data[4]/30)
+            win_count.append(avg_data[5])
+            lose_count.append(avg_data[6])
+            tie_count.append(log_interval-avg_data[5]-avg_data[6])
+            illegal_move_count.append(avg_data[7])
+            avg_data = [0]*amount_datapoints
     #plt.plot(n, total_reward, 'r', label="Total Reward") #plot data
     #plt.plot(n, epsilon, 'g', label="Epsilon (amplified x1000)")
     #plt.plot(n, avg_reward, 'b', label="Avg. Reward")
@@ -61,22 +81,32 @@ def plotTicTacToe(log_path):
     
     dim = 1
     y = win_count
-    x = (np.arange(len(win_count)))*100
-    coef = np.polyfit(x,y,dim)
+    coef = np.polyfit(n,y,dim)
     poly1d_fn = np.poly1d(coef) 
-    plt.plot(x+100, poly1d_fn(x), '--g', label = "Slope = "+str(round(coef[0],3)) )
+    plt.plot(n, poly1d_fn(n), '--g', label = "Avg. Incr. = "+str(round(coef[0]*len(n)*100,3))+"%")
 
     y = lose_count
-    x = (np.arange(len(lose_count)))*100
-    coef = np.polyfit(x,y,dim)
+    coef = np.polyfit(n,y,dim)
     poly1d_fn = np.poly1d(coef) 
-    plt.plot(x+100, poly1d_fn(x), '--r', label = "Slope = "+str(round(coef[0],3)) )
+    plt.plot(n, poly1d_fn(n), '--r', label = "Avg. Incr. = "+str(round(coef[0]*len(n)*100,3))+"%")
+    
     y = tie_count
-    x = (np.arange(len(tie_count)))*100
-    coef = np.polyfit(x,y,dim)
+    coef = np.polyfit(n,y,dim)
     poly1d_fn = np.poly1d(coef) 
-    plt.plot(x+100, poly1d_fn(x), '--k', label = "Slope = "+str(round(coef[0],3)) )
+    plt.plot(n, poly1d_fn(n), '--k', label = "Avg. Incr. = "+str(round(coef[0]*len(n)*100,3))+"%")
+
+    # Print Averages
+    def avg(lst): 
+        return round(sum(lst) / len(lst),3)
+
+    print("Avg. Reward: ",avg(total_reward),"| Avg. win: ",avg(win_count),"| Avg. lose: ",avg(lose_count),"| Avg. ties: ",avg(tie_count),"| Avg. Illegal Moves: ",avg(illegal_move_count))
 
     plt.legend(loc="upper right",fontsize = 'x-small')
     plt.savefig('tictactoe/figures/fig.'+timeAndInfo+".pdf")
     plt.show()
+
+# If you want to plot a Tic Tac Toe Log set the model name here, if empty nothing will be performed
+tictactoe_model_name = ""
+
+if tictactoe_model_name != "":
+    plotTicTacToe("tictactoe/logs/"+tictactoe_model_name)
