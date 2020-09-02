@@ -135,7 +135,7 @@ def plotSnake(log_path):
         intvl = 10
         print("Automatically swichted to avg. every 10th value")
     
-    amount_datapoints = 8
+    amount_datapoints = 6
     avg_data = [0]*amount_datapoints
 
     for i in range(len(data)): #append all data
@@ -177,8 +177,12 @@ def plotSnake(log_path):
     plt.savefig('snake/figures/fig.'+timeAndInfo+".pdf")
     plt.show()
 
-# If you want to plot a Tic Tac Toe Log set the model name here, if empty nothing will be performed
+# If you want to plot a Log set the model name here, if empty nothing will be performed
 tictactoe_model_name = ""
+snake_model_name = ""
 
 if tictactoe_model_name != "":
-    plotTicTacToe("tictactoe/logs/"+tictactoe_model_name)
+    plotTicTacToe("ticatactoe/logs/"+tictactoe_model_name)
+
+if snake_model_name != "":
+    plotSnake("snake/logs/"+snake_model_name)
