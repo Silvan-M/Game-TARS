@@ -251,7 +251,7 @@ class train_dqn():
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
-        log_interval = 100
+        log_interval = 10
 
         # For storing logs and model afterwards
         current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
@@ -299,7 +299,7 @@ class train_dqn():
                     print("Episode: {0:{1}.0f} | Episode Reward: {2: 2.0f} | Eps.: {3:2.0f} | Avg. Rew. (last {4: .0f}): {5:2.3f} | Episode Loss: {6:.3f} | Points: {7:2.3f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
                     
                     f = open(log_path, "a")
-                    f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(avg_rewards)+"\n"))
+                    f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(avg_points)+"\n"))
                     total_points = []
                     f.close()
 
