@@ -78,6 +78,46 @@ class train_dqn():
                 print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}\n".format(rewards,str(won),str(lose),str(done)))
         return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
 
+    def play_snake(self, state, environment, epsilon, copy_step):
+        environment.reset()
+        rewards = 0
+        apples = 0
+        iter = 0
+        done = False
+        observations = state
+        losses = list()
+        while not done: # observes until game is done 
+            action = self.TrainNet.get_action(np.array(observations), epsilon) # TrainNet determines favorable action
+
+            prev_observations = observations # saves observations
+            done, reward, observations =  environment.step(action)
+            
+            if reward == environment.reward_apple:
+                apples += 1
+
+            rewards += reward        
+            exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
+            self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
+            loss = self.TrainNet.train(self.TargetNet) # returns loss 
+            if isinstance(loss, int): # checks if loss is an integer
+                losses.append(loss)
+            else:
+                losses.append(loss.numpy()) # converted into an integer
+            iter += 1 # increment the counter
+            if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+                self.TargetNet.copy_weights(self.TrainNet) 
+
+            if verbose == 1:
+                if done:
+                    print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+            elif verbose == 2:
+                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+            elif verbose == 3:
+                for row in range(0, environment.field_size):
+                    print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
+                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
+        return rewards, mean(losses), apples #returns rewards and average
+
     def playNewModel(self, state, environment, epsilon, copy_step):
         environment.reset()
         rewards = 0
@@ -171,11 +211,11 @@ class train_dqn():
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
-        # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe]}
+        # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points)
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["tictactoe"]
+        game = games["snake"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -219,30 +259,53 @@ class train_dqn():
         log_path = game[2]+"/logs/log."+timeAndInfo+".txt" # Model saved at "tictactoe/logs/log.Y.m.d-H:M:S-N.amountOfEpisodes.txt"
         checkpoint_path = game[2]+"/models/model."+timeAndInfo # Model saved at "tictactoe/models/model.Y.m.d-H:M:S-N.amountOfEpisodes"
         illegal_moves = 0
-        for n in range(N):
-            epsilon = max(min_epsilon, epsilon * decay)
-            total_reward, losses, won, lose, illegal_moves_game = game[0](state, environment, epsilon, copy_step)
-            if won:
-                win_count += 1
-            if lose:
-                lose_count += 1
-            total_rewards[n] = total_reward
-            #print(illegal_moves_game)
-            avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
-            illegal_moves += illegal_moves_game
-            if (n % log_interval == 0) and (n != 0) or (n == N-1):
-                print("Episode: {0:{1}.0f} | Episode Reward: {2:2.0f} | Eps.: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:2.3f} | Episode Loss: {6:.3f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
-                
-                f = open(log_path, "a")
-                f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
-                illegal_moves = 0
-                f.close()
-                win_count = 0
-                lose_count = 0
 
-                # Save the models
-                tf.saved_model.save(self.TrainNet.model, checkpoint_path+"/TrainNet")
-                tf.saved_model.save(self.TargetNet.model, checkpoint_path+"/TargetNet")
+        # If output is win&lose
+        if game[4] == 0:
+            for n in range(N):
+                epsilon = max(min_epsilon, epsilon * decay)
+                total_reward, losses, won, lose, illegal_moves_game = game[0](state, environment, epsilon, copy_step)
+                if won:
+                    win_count += 1
+                if lose:
+                    lose_count += 1
+                total_rewards[n] = total_reward
+                #print(illegal_moves_game)
+                avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
+                illegal_moves += illegal_moves_game
+                if (n % log_interval == 0) and (n != 0) or (n == N-1):
+                    print("Episode: {0:{1}.0f} | Episode Reward: {2:2.0f} | Eps.: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:2.3f} | Episode Loss: {6:.3f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
+                    
+                    f = open(log_path, "a")
+                    f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
+                    illegal_moves = 0
+                    f.close()
+                    win_count = 0
+                    lose_count = 0
+
+                    # Save the models
+                    tf.saved_model.save(self.TrainNet.model, checkpoint_path+"/TrainNet")
+                    tf.saved_model.save(self.TargetNet.model, checkpoint_path+"/TargetNet")
+        elif game[4] == 1:
+            total_points = []
+            for n in range(N):
+                epsilon = max(min_epsilon, epsilon * decay)
+                total_reward,losses, points = game[0](state, environment, epsilon, copy_step)
+                total_rewards[n] = total_reward
+                avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
+                total_points.append(points)
+                if (n % log_interval == 0) and (n != 0) or (n == N-1):
+                    avg_points = sum(total_points) / len(total_points)
+                    print("Episode: {0:{1}.0f} | Episode Reward: {2: 2.0f} | Eps.: {3:2.0f} | Avg. Rew. (last {4: .0f}): {5:2.3f} | Episode Loss: {6:.3f} | Points: {7:2.3f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
+                    
+                    f = open(log_path, "a")
+                    f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(avg_rewards)+"\n"))
+                    total_points = []
+                    f.close()
+
+                    # Save the models
+                    tf.saved_model.save(self.TrainNet.model, checkpoint_path+"/TrainNet")
+                    tf.saved_model.save(self.TargetNet.model, checkpoint_path+"/TargetNet")
         print("avg reward for last 100 episodes:", avg_rewards)    
         game[3](log_path)
 

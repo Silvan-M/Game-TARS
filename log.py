@@ -105,6 +105,78 @@ def plotTicTacToe(log_path):
     plt.savefig('tictactoe/figures/fig.'+timeAndInfo+".pdf")
     plt.show()
 
+def plotSnake(log_path):
+    # Filename is used to create 
+    data=[]
+    timeAndInfo = log_path[19:-4]
+    with open(log_path) as f: # open log.txt
+        for line in f.readlines(): #read all lines and safe as list in line
+            line=line.split(';') #separate data by ; into a list
+            float_list = [float(i) for i in line] #convert into float
+            data.append(float_list)  #append data
+    total_reward = [] #create datalist
+    n = []
+    epsilon = []
+    avg_reward = []
+    losses = []
+    pts_count = []
+    N_start_index = log_path.find("-N.")
+    N = int(log_path[N_start_index+3:-4])
+    log_interval_start_index = log_path.find("-I.")
+    log_interval = int(log_path[log_interval_start_index+3:N_start_index])
+
+    # intvl defines how many values should be taken the average of, this will prevent too much data points in the graph, so by default it is set to 1, but if N gets higher than 100K it will average every 100 values
+    intvl = 1
+
+    if len(data)*log_interval >= 100000:
+        intvl = 100
+        print("Automatically swichted to avg. every 100th value")
+    elif len(data)*log_interval >= 50000:
+        intvl = 10
+        print("Automatically swichted to avg. every 10th value")
+    
+    amount_datapoints = 8
+    avg_data = [0]*amount_datapoints
+
+    for i in range(len(data)): #append all data
+        for k in range(amount_datapoints):
+            avg_data[k] += data[i][k]
+        if ((i % intvl == 0) and i != 0) or (intvl == 1):
+            for k, v in enumerate(avg_data):
+                avg_data[k] = v/intvl
+
+            n.append(avg_data[0])
+            total_reward.append(avg_data[1])
+            epsilon.append(avg_data[2]*1000)
+            avg_reward.append(avg_data[3])
+            losses.append(avg_data[4]/30)
+            pts_count.append(avg_data[5])
+            avg_data = [0]*amount_datapoints
+    #plt.plot(n, total_reward, 'r', label="Total Reward") #plot data
+    #plt.plot(n, epsilon, 'g', label="Epsilon (amplified x1000)")
+    #plt.plot(n, avg_reward, 'b', label="Avg. Reward")
+    #plt.plot(n, lose, 'y', label="Lose (30)")
+
+    plt.plot(n, pts_count, 'g', label="Wins per "+str(log_interval))
+    plt.title("Log N"+str(N))
+    plt.xlabel("Episodes")
+    plt.ylabel("Value")
+    
+    dim = 1
+    y = pts_count
+    coef = np.polyfit(n,y,dim)
+    poly1d_fn = np.poly1d(coef) 
+    plt.plot(n, poly1d_fn(n), '--g', label = "Avg. Incr. = "+str(round(coef[0]*len(n)*100,3))+"%")
+
+    # Print Averages
+    def avg(lst): 
+        return round(sum(lst) / len(lst),3)
+
+    print("Avg. Reward: ",avg(total_reward),"| Avg. pts: ",avg(pts_count))
+    plt.legend(loc="upper right",fontsize = 'x-small')
+    plt.savefig('snake/figures/fig.'+timeAndInfo+".pdf")
+    plt.show()
+
 # If you want to plot a Tic Tac Toe Log set the model name here, if empty nothing will be performed
 tictactoe_model_name = ""
 
