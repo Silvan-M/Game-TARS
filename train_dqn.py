@@ -8,7 +8,7 @@ import log
 import games as g
 import dqn as dqn
 global MMA
-MMA = True # True = Random, MinMaxAlg = False
+MMA = False # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
 verbose = 0
 
@@ -149,7 +149,7 @@ class train_dqn():
 
         load = False
         if load:
-            model_name = "model.2020.09.03-07.58.35-I.100-N.1000"
+            model_name = "model.2020.09.03-16.49.34-I.100-N.500"
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             self.TrainNet.model = tf.saved_model.load(directory)
             directory = "tictactoe/models/"+model_name+"/TargetNet/"

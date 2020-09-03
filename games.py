@@ -70,7 +70,7 @@ class tictactoe:
         #check if previous move was on the secondary diagonal and caused a win
         if self.state[2] == self.state[4] == self.state[6] != 0:
             return True, self.state[2]
-
+        
         return False, 0 
     
     def step_player(self, action)  -> list:
@@ -136,6 +136,7 @@ class tictactoe:
         
         # if game is done, end the game
         done, winner = self.checkWhoWon()
+        
         while (0 in self.state) and not illegalmove and not done:
             if ran:
                 var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
@@ -148,7 +149,6 @@ class tictactoe:
         
         # Check again
         done, winner = self.checkWhoWon()
-
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:

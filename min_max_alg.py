@@ -1,4 +1,5 @@
 import copy
+import random
 import math
 X = "X"
 O = "O"
@@ -65,8 +66,8 @@ def winner(board):
             return board[0][0]
         elif (board[0][2] == board[1][1] == board[2][0] and board[2][0] != EMPTY):
             return board[0][2]
-        else:
-            return None
+       
+    return None
 def minimax(board):
     if terminal(board):
         return None
@@ -101,6 +102,8 @@ def min_value(board):
     for action in actions(board):
         v = min(v, max_value(result(board, action)))   
     return v
+def convert(state):
+    return [state[0:3],state[3:6],state[6:9]]
 def GetMove(state,tup = False):
     conv= [[0,0,0],[0,0,0],[0,0,0]]
     for i in range(9):
@@ -118,3 +121,16 @@ def GetMove(state,tup = False):
         return(a*3 + b)
     else:
         return(minimax(conv))
+# for i in range(100):
+#     state = [0]*9
+#     while 0 in state:
+#         state[GetMove(state, False)] = 1
+#         while True:
+#             rand = random.randint(0,8)
+#             if state[rand] ==0:
+#                 state[rand] = 2
+#                 break
+#         if winner(convert(state)) != None:
+#             print('Winner: '+str(winner(convert(state))))
+#             print(state)
+#             break
