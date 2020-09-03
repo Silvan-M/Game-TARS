@@ -10,7 +10,7 @@ class tictactoe:
         state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.state = state
         gamma = 0.1
-        copy_step = 50
+        copy_step = 1
         num_state = 18
         num_actions = 9
         hidden_units = [27*9]
@@ -27,9 +27,9 @@ class tictactoe:
         self.debugging = False
         
         # TicTacToe rewards
-        self.reward_tie = 0.5
-        self.reward_win = 1
-        self.reward_lose = -1
+        self.reward_tie = 5000
+        self.reward_win = 5000
+        self.reward_lose = -600
         self.reward_illegal_move = 0
         self.reward_legal_move = 0
         self.reward_immediate_preset = 0
