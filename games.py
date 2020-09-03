@@ -33,7 +33,7 @@ class tictactoe:
         self.reward_illegal_move = 0
         self.reward_legal_move = 0
         self.reward_immediate_preset = 0
-        self.reward_immediate_prevent = 0
+        self.reward_immediate_prevent = 1000
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
