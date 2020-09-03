@@ -164,9 +164,26 @@ class play_dqn_pygame:
         touchcoords = ((175,325),(100,250)),((325,475),(100,250)),((475,625),(100,250)),((175,325),(250,400)),((325,475),(250,400)),((475,625),(250,400)),((175,325),(400,550)),((325,475),(400,550)),((475,625),(400,550)) # Coordinate Buttons: ((leftmost x, rightmost, x),(upmost y, downmost y))
         pygame.draw.rect(self.screen, self.TealFaded, (touchcoords[field][0][0],touchcoords[field][1][0],150,150), 0)
 
+    # Snake specific functions
+    def drawSnake(self):
+        fs = self.snake.field_size
+        pygame.draw.rect(self.screen, self.White, [150, 50, 500, 500], 3)
+        self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
+
+        for i, v in enumerate(self.field):
+            if v == 1:
+                distanceTopWall = i//self.snake.field_size
+                distanceLeftWall = i-distanceTopWall*self.snake.field_size
+                pygame.draw.rect(self.screen, self.White, [150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall, 500/fs, 500/fs])
+            elif v == 2:
+                distanceTopWall = i//self.snake.field_size
+                distanceLeftWall = i-distanceTopWall*self.snake.field_size
+                pygame.draw.rect(self.screen, self.Teal, [150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall, 500/fs, 500/fs])
+
 
     # SCREEN FUNCTIONS: Functions which display certain scenes
 
+    # Tic Tac Toe Screen Functions
     def endGame(self):
         self.screen.fill(self.Black)
         msg = "It's a tie!"
@@ -411,6 +428,138 @@ class play_dqn_pygame:
                     self.previousGame = self.ticTacToeAvA
                     self.currentScreenFunction = self.endGame
     
+    def ticTacToeMenu(self):
+        # Clear screen and set background color
+        self.screen.fill(self.Black)
+        self.modelLoaded = False
+        self.addText("Choose a mode.", self.blanka, 60, self.White, 400, 100)
+        self.addButton("Player vs Player", 400, 200, 400, 40, self.ticTacToePvP)
+        self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacToePvA)
+        self.addButton("AI vs AI", 400, 400, 400, 40, self.ticTacToeAvA)
+        self.addButton("Back", 70 ,565, 100, 30, self.back)
+    
+    # Snake Screen Functions
+    def endSnake(self):
+        self.screen.fill(self.Black)
+        msg = "Score: "+str(self.score)
+        self.addText(msg, self.blanka, 100, self.White, 400, 200)
+        self.addButton("Play again", 400, 300, 400, 40, self.previousGame)
+        self.addButton("Menu", 400, 400, 400, 40, self.back)
+        self.first = True
+        self.reallyFirst = True
+    
+    def snakeP(self):
+        if self.first:
+            self.first = False
+            self.snake = g.snake()
+            self.field = self.snake.field
+            self.counter = 0
+            self.action = 0
+            self.score = 0
+
+        self.counter += 1
+        # Clear screen and set background color
+        self.screen.fill(self.Black)
+
+        self.addButton("Back", 70 ,565, 100, 30, self.back)
+        self.drawSnake()
+
+
+        move_ticker = 0
+        keys=pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            if move_ticker == 0:
+                move_ticker = 10
+                self.action = 3
+        if keys[pygame.K_RIGHT]:
+            if move_ticker == 0:   
+                move_ticker = 10     
+                self.action = 1
+        if keys[pygame.K_UP]:
+            if move_ticker == 0:   
+                move_ticker = 10     
+                self.action = 0
+        if keys[pygame.K_DOWN]:
+            if move_ticker == 0:   
+                move_ticker = 10     
+                self.action = 2
+        
+
+        if self.action != -1 and (self.counter % 5 == 0):
+            done, reward, observations =  self.snake.step(self.action)
+            self.field = self.snake.field
+
+            if reward == self.snake.reward_apple:
+                self.score += 1
+
+            if done:
+                self.won = 0
+                self.previousGame = self.snakeP
+                self.currentScreenFunction = self.endSnake
+
+    def snakeAI(self):
+        if self.first:
+            if self.reallyFirst:
+                self.first = False
+                self.snake = g.snake()
+                self.field = self.snake.field
+                self.counter = 0
+                self.action = 0
+                self.score = 0
+
+                # Initialize DQN
+                state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.snake.variables
+                self.state = state
+                self.snakeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+                
+                self.subpath = "snake"
+            self.first = self.reallyFirst
+            model_name = self.ModelMenu()
+            self.first = True
+            
+            if self.modelLoaded == False:
+                if model_name:
+                    directory = "snake/models/"+model_name+"/TrainNet/"
+                    self.snakeDQN.model = tf.saved_model.load(directory)
+                    self.first = False
+                    self.modelLoaded = True
+                self.counter = 0
+            else:
+                self.first = False
+            self.reallyFirst = False
+        else:
+            self.counter += 1
+            # Clear screen and set background color
+            self.screen.fill(self.Black)
+
+            self.addButton("Back", 70 ,565, 100, 30, self.back)
+            self.drawSnake()
+
+            if self.action != -1 and (self.counter % 5 == 0):
+                self.action = self.snakeDQN.get_action(np.array(self.state),0)
+                done, reward, state =  self.snake.step(self.action)
+                self.field = self.snake.field
+                self.state = state
+
+                if reward == self.snake.reward_apple:
+                    self.score += 1
+
+                if done:
+                    self.won = 0
+                    self.previousGame = self.snakeAI
+                    self.currentScreenFunction = self.endSnake
+
+    def snakeMenu(self):
+        # Clear screen and set background color
+        self.screen.fill(self.Black)
+        self.modelLoaded = False
+        self.addText("Who should play?", self.blanka, 60, self.White, 400, 100)
+        self.addButton("Player", 400, 250, 400, 40, self.snakeP)
+        self.addButton("AI", 400, 350, 400, 40, self.snakeAI)
+        self.addButton("Back", 70 ,565, 100, 30, self.back)
+
+    # General Screen Functions
+
     def scrollBar(self, page, item, mode):
         if self.first:
             self.first = False
@@ -467,15 +616,6 @@ class play_dqn_pygame:
                 checkpage = self.page
             self.addText("Page "+str(self.page+1)+' of '+str(amount_pages), self.ailerons, 15, self.White, 400, 500)
             self.addButton("Back", 70 ,565, 100, 30, self.back)
-    def ticTacToeMenu(self):
-        # Clear screen and set background color
-        self.screen.fill(self.Black)
-        self.modelLoaded = False
-        self.addText("Choose a mode.", self.blanka, 60, self.White, 400, 100)
-        self.addButton("Player vs Player", 400, 200, 400, 40, self.ticTacToePvP)
-        self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacToePvA)
-        self.addButton("AI vs AI", 400, 400, 400, 40, self.ticTacToeAvA)
-        self.addButton("Back", 70 ,565, 100, 30, self.back)
     
     def ModelMenu(self):
         # Clear screen and set background color
@@ -498,8 +638,8 @@ class play_dqn_pygame:
         self.addText("G A M E   T A R S", self.anurati, 80, self.White, 400, 100)
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
-        self.addButton("Tetris (Work in Progress)", 400, 350, 400, 40, self.ticTacToeMenu)
-        self.addButton('Snake (Work in Progress)', 400, 400, 400, 40, self.ticTacToeMenu)
+        self.addButton('Snake', 400, 350, 400, 40, self.snakeMenu)
+        self.addButton("Tetris (Work in Progress)", 400, 400, 400, 40, self.ticTacToeMenu)
 
     def back(self):
         self.first = True
@@ -545,8 +685,8 @@ class play_dqn_pygame:
             # Make black fade in at the beginning
             if fadeInCounter >= 5:
                 fadeInCounter -= 5
-                s = pygame.Surface((800,600), pygame.SRCALPHA)   # per-pixel alpha
-                s.fill((0,0,0,fadeInCounter))                         # notice the alpha value in the color
+                s = pygame.Surface((800,600), pygame.SRCALPHA) # per-pixel alpha
+                s.fill((0,0,0,fadeInCounter)) # notice the alpha value in the color
                 self.screen.blit(s, (0,0))
 
             # Update screen
