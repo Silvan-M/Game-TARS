@@ -9,9 +9,9 @@ class tictactoe:
         # Variables
         state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.state = state
-        gamma = 0.9
+        gamma = 0.1
         copy_step = 50
-        num_state = 27
+        num_state = 18
         num_actions = 9
         hidden_units = [27*9]
         max_experience = 50000
@@ -32,17 +32,153 @@ class tictactoe:
         self.reward_lose = -1
         self.reward_illegal_move = 0
         self.reward_legal_move = 0
+        self.reward_immediate_preset = 0
+        self.reward_immediate_prevent = 0
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+    def giveImmediateReward(self, beforeState, afterState):
+        beforeStateManipulated = [beforeState[0:3],beforeState[3:6],beforeState[6:9]]
+        afterStateManipulated = [afterState[0:3],afterState[3:6],afterState[6:9]]
+
+        beforePreset = self.checkForTwoPreset(beforeStateManipulated)
+        afterPreset = self.checkForTwoPreset(afterStateManipulated)
+
+        beforePrevent = self.checkForTwoPrevent(beforeStateManipulated)
+        afterPrevent = self.checkForTwoPrevent(afterStateManipulated)
+        reward = 0
+        if afterPreset-beforePreset > 0:
+            reward += self.reward_immediate_preset
+        if afterPrevent-beforePrevent > 0:
+            reward += self.reward_immediate_prevent
+        return reward
+
+    def checkForTwoPrevent(self, sM):
+        count = 0
+        for i in range(3):
+            # HORIZONTAL
+
+            # Check horizontal 1 1 0
+            if (sM[i][0] == sM[i][1] == 2) and sM[i][2] == 1:
+                count += 1
+            
+            # Check horizontal 1 0 1
+            if (sM[i][0] == sM[i][2] == 2) and sM[i][1] == 1:
+                count += 1
+            
+            # Check horizontal 0 1 1
+            if (sM[i][2] == sM[i][1] == 2) and sM[i][0] == 1:
+                count += 1
+            
+            # VERTICAL
+
+            # Check vertical 1 1 0
+            if (sM[0][i] == sM[1][i] == 2) and sM[2][i] == 1:
+                count += 1
+            
+            # Check vertical 1 0 1
+            if (sM[0][i] == sM[2][i] == 2) and sM[1][i] == 1:
+                count += 1
+            
+            # Check vertical 0 1 2
+            if (sM[2][i] == sM[1][i] == 2) and sM[0][i] == 1:
+                count += 1
+
+        # DIAGONALS
+        
+        # Diagonal LT - RB
+        # Check diagonal 1 1 0
+        if (sM[0][0] == sM[1][1] == 2) and sM[2][2] == 1:
+            count += 1
+
+        # Check diagonal 1 0 1
+        if (sM[0][0] == sM[2][2] == 2) and sM[1][1] == 1:
+            count += 1
+
+        # Check diagonal 0 1 1
+        if (sM[1][1] == sM[2][2] == 2) and sM[0][0] == 1:
+            count += 1
+
+        # Diagonal RT - LB
+        # Check diagonal 1 1 0
+        if (sM[0][2] == sM[1][1] == 2) and sM[2][0] == 1:
+            count += 1
+
+        # Check diagonal 1 0 1
+        if (sM[0][2] == sM[2][0] == 2) and sM[1][1] == 1:
+            count += 1
+
+        # Check diagonal 0 1 1
+        if (sM[1][1] == sM[2][0] == 2) and sM[0][2] == 1:
+            count += 1
+        return count
+
+        
+    def checkForTwoPreset(self, sM):
+        count = 0
+        for i in range(3):
+            # HORIZONTAL
+
+            # Check horizontal 1 1 0
+            if (sM[i][0] == sM[i][1] == 1) and sM[i][2] == 0:
+                count += 1
+            
+            # Check horizontal 1 0 1
+            if (sM[i][0] == sM[i][2] == 1) and sM[i][1] == 0:
+                count += 1
+            
+            # Check horizontal 0 1 1
+            if (sM[i][2] == sM[i][1] == 1) and sM[i][0] == 0:
+                count += 1
+            
+            # VERTICAL
+
+            # Check vertical 1 1 0
+            if (sM[0][i] == sM[1][i] == 1) and sM[2][i] == 0:
+                count += 1
+            
+            # Check vertical 1 0 1
+            if (sM[0][i] == sM[2][i] == 1) and sM[1][i] == 0:
+                count += 1
+            
+            # Check vertical 0 1 1
+            if (sM[2][i] == sM[1][i] == 1) and sM[0][i] == 0:
+                count += 1
+
+        # DIAGONALS
+        
+        # Diagonal LT - RB
+        # Check diagonal 1 1 0
+        if (sM[0][0] == sM[1][1] == 1) and sM[2][2] == 0:
+            count += 1
+
+        # Check diagonal 1 0 1
+        if (sM[0][0] == sM[2][2] == 1) and sM[1][1] == 0:
+            count += 1
+
+        # Check diagonal 0 1 1
+        if (sM[1][1] == sM[2][2] == 1) and sM[0][0] == 0:
+            count += 1
+
+        # Diagonal RT - LB
+        # Check diagonal 1 1 0
+        if (sM[0][2] == sM[1][1] == 1) and sM[2][0] == 0:
+            count += 1
+
+        # Check diagonal 1 0 1
+        if (sM[0][2] == sM[2][0] == 1) and sM[1][1] == 0:
+            count += 1
+
+        # Check diagonal 0 1 1
+        if (sM[1][1] == sM[2][0] == 1) and sM[0][2] == 0:
+            count += 1
+        return count
 
     def convert0neHot(self, observation):
-        oneHot = 27*[0]
+        oneHot = 18*[0]
         for i in range(9):
-            if observation[i] == 0:
-                oneHot[i+18] = 1
-            elif observation[i] == 1:
+            if observation[i] == 1:
                 oneHot[i] = 1
             else:
                 oneHot[i+9] = 1
@@ -125,6 +261,7 @@ class tictactoe:
         won = False
         lose = False
         illegalmove = False
+        before_state = self.state.copy()
         
         if self.state[action] != 0:
             reward = self.reward_illegal_move
@@ -134,6 +271,8 @@ class tictactoe:
             self.state[action] = 1
             reward = self.reward_legal_move
         
+        after_state = self.state.copy()
+
         # if game is done, end the game
         done, winner = self.checkWhoWon()
         
@@ -165,6 +304,13 @@ class tictactoe:
             done = True
             reward = self.reward_tie
         
+        if not done and not illegalmove:
+            reward = self.giveImmediateReward(before_state,after_state)
+            # if reward != 0:
+            #     print("BEFORE: ")
+            #     print(before_state)
+            #     print("AFTER: ")
+            #     print(after_state)
         # print("Done: "+str(done)+", Winner: "+str(winner), "Reward: "+str(reward))
         # print(self.state)
         if done and self.debugging:

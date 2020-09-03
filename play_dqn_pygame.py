@@ -261,7 +261,8 @@ class play_dqn_pygame:
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
-                self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+                if not self.modelLoaded:
+                    self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
                 self.subpath = "tictactoe"
             if self.modelLoaded == False:
@@ -407,7 +408,8 @@ class play_dqn_pygame:
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.tictactoe.variables
 
-                self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+                if not self.modelLoaded:
+                    self.tictactoeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
                 
                 self.subpath = "tictactoe"
             self.first = self.reallyFirst
@@ -567,7 +569,9 @@ class play_dqn_pygame:
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.snake.variables
                 self.state = state
-                self.snakeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+
+                if not self.modelLoaded:
+                    self.snakeDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
                 
                 self.subpath = "snake"
             self.first = self.reallyFirst

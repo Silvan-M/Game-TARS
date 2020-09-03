@@ -8,7 +8,7 @@ import log
 import games as g
 import dqn as dqn
 global MMA
-MMA = False # True = Random, MinMaxAlg = False
+MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
 verbose = 0
 
@@ -22,22 +22,28 @@ class train_dqn():
         losses = list()
         illegal_moves = 0
         while not done: # observes until game is done 
-            randMove, q = self.TrainNet.get_q(np.array(observations), epsilon) # TrainNet determines favorable action
             action = 0
-            
-            if not randMove:
-                q_list_prob=[]
-                q_list_min = np.min(q)
-                q_list_max = np.max(q)
-                for qi in q:
-                    q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
-                for i, p in enumerate(q_list_prob):
-                    if environment.isIllegalMove(i):
-                        q_list_prob[i] = - 1
-                action = np.argmax(q_list_prob)
+
+            # Set to False if you want illegalmoves, if True it will pick the highest legal q value 
+            if True:
+                environment.reward_illegal_move = 0
+                randMove, q = self.TrainNet.get_q(np.array(observations), epsilon) # TrainNet determines favorable action
                 
+                if not randMove:
+                    q_list_prob=[]
+                    q_list_min = np.min(q)
+                    q_list_max = np.max(q)
+                    for qi in q:
+                        q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
+                    for i, p in enumerate(q_list_prob):
+                        if environment.isIllegalMove(i):
+                            q_list_prob[i] = - 1
+                    action = np.argmax(q_list_prob)
+                    
+                else:
+                    action = q
             else:
-                action = q
+                action = self.TrainNet.get_action(np.array(observations), epsilon) 
 
             prev_observations = observations # saves observations
             result = environment.step(action, MMA)
