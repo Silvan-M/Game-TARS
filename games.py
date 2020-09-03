@@ -278,7 +278,10 @@ class tictactoe:
         
         while (0 in self.state) and not illegalmove and not done:
             if ran:
-                var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+                if self.state[4] == 0 and random.random()>0.3:
+                    var = 4
+                else:
+                    var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
             else:
                 var = mma.GetMove(self.state, False)
             if self.state[var] == 0:
