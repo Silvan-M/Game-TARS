@@ -76,10 +76,6 @@ class train_dqn():
                 print(environment.state[0:3], "   ", [0,1,2])
                 print(environment.state[3:6], "   ", [3,4,5])
                 print(environment.state[6:9], "   ", [6,7,8])
-                print(environment.convert0neHot(environment.state))
-                print(observations)
-                if environment.convert0neHot(environment.state) != observations:
-                    print("HERE IS THE ISSUE")
                 print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}\n".format(rewards,str(won),str(lose),str(done)))
         return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
     

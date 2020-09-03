@@ -11,6 +11,7 @@ import glob
 import os
 import games as g
 import dqn as dqn
+import min_max_alg as mma
 
 class play_dqn_pygame:
     def __init__(self):
@@ -338,6 +339,61 @@ class play_dqn_pygame:
                     self.previousGame = self.ticTacToePvA
                     self.currentScreenFunction = self.endGame
 
+    def ticTacToePvM(self):
+        if self.first:
+            self.first = False
+            # (Re)set Variables for TTT
+            self.state = [0,0,0,0,0,0,0,0,0]
+            self.tictactoe = g.tictactoe()
+            self.activePlayer = 0
+            self.illegalmove = False
+            self.won = -1 # -1: Game in progress, 0: Cross won, 1:  Circle won, 3: Tie
+        # Clear screen and set background color
+        self.screen.fill(self.Black)
+        action = -1
+        if self.activePlayer == 1:
+            action = self.checkForTouch()
+
+        msg = "MinMaxs turn!"
+        if self.illegalmove:
+            if self.activePlayer == 1:
+                msg = "Cross: Illegal move! Try again!"
+            else:
+                msg = "Circle: Illegal move! Random action!"
+        elif self.activePlayer == 1:
+            msg = "Circle's turn!"
+
+        self.addButton("Back", 70 ,565, 100, 30, self.back)
+        self.addText(msg, self.blanka, 30, self.White, 400, 50)
+        self.drawBoard()
+
+        if self.activePlayer == 0:
+            action = mma.GetMove(self.state, False) # MinMax determines favorable action
+            
+        
+        if action != -1:
+            output = self.tictactoe.step_once(action,self.activePlayer)
+            
+            self.state = output[0]
+            self.illegalmove = output[5]
+            self.activePlayer = output[6]
+
+            if output[3]:
+                # Cross won
+                self.won = 0
+                self.previousGame = self.ticTacToePvM
+                self.currentScreenFunction = self.endGame
+            elif output[4]:
+                # Circle won
+                self.won = 1
+                self.previousGame = self.ticTacToePvM
+                self.currentScreenFunction = self.endGame
+            elif output[2]:
+                # Tie
+                self.won = 2
+                self.previousGame = self.ticTacToePvM
+                self.currentScreenFunction = self.endGame
+
     def ticTacToeAvA(self):
         if self.first:
             if self.reallyFirst:
@@ -435,7 +491,8 @@ class play_dqn_pygame:
         self.addText("Choose a mode.", self.blanka, 60, self.White, 400, 100)
         self.addButton("Player vs Player", 400, 200, 400, 40, self.ticTacToePvP)
         self.addButton("Player vs AI", 400, 300, 400, 40, self.ticTacToePvA)
-        self.addButton("AI vs AI", 400, 400, 400, 40, self.ticTacToeAvA)
+        self.addButton("Player vs MinMax", 400, 400, 400, 40, self.ticTacToePvM)
+        self.addButton("AI vs AI", 400, 500, 400, 40, self.ticTacToeAvA)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
     
     # Snake Screen Functions
