@@ -119,7 +119,7 @@ class tictactoe:
         return [self.state, reward, done, won]  
 
 
-    def step(self, action, random = False)  -> list:
+    def step(self, action, ran = False)  -> list:
         reward = 0
         won = False
         lose = False
@@ -135,15 +135,15 @@ class tictactoe:
         
         # if game is done, end the game
         done, winner = self.checkWhoWon()
-
         while (0 in self.state) and not illegalmove and not done:
-            if random:
+            if ran:
                 var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
             else:
                 var = mma.GetMove(self.state, False)
             if self.state[var] == 0:
                 self.state[var] = 2
                 break
+
         
         # Check again
         done, winner = self.checkWhoWon()

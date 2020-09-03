@@ -103,7 +103,7 @@ def min_value(board):
     return v
 def GetMove(state,tup = False):
     conv= [[0,0,0],[0,0,0],[0,0,0]]
-    for i in range(8):
+    for i in range(9):
         conv[i//3][i%3] = state[i]
     for i in range(3):
         for y in range(3):

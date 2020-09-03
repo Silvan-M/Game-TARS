@@ -7,7 +7,8 @@ import random
 import log
 import games as g
 import dqn as dqn
-
+global MMA
+MMA = False # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
 verbose = 0
 
@@ -39,7 +40,7 @@ class train_dqn():
                 action = q
 
             prev_observations = observations # saves observations
-            result = environment.step(action)
+            result = environment.step(action, MMA)
             observations = environment.convert0neHot(result[0])
             reward = result[1]
             done = result[2]
@@ -77,7 +78,6 @@ class train_dqn():
                 print(environment.state[6:9], "   ", [6,7,8])
                 print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}\n".format(rewards,str(won),str(lose),str(done)))
         return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
-
     def playNewModel(self, state, environment, epsilon, copy_step):
         environment.reset()
         rewards = 0
@@ -94,7 +94,7 @@ class train_dqn():
             prev_observations = observations # saves observations
             # Uncomment following line if you want to test how a purely random agent performs
             # action = random.randint(0,8)
-            result = environment.step(action)
+            result = environment.step(action,MMA)
             observations = result[0]
             state = observations
             reward = result[1]
@@ -140,7 +140,7 @@ class train_dqn():
             prev_observations = observations # saves observations
             # Uncomment following line if you want to test how a purely random agent performs
             # action = random.randint(0,8)
-            result = environment.step(action)
+            result = environment.step(action, MMA)
             observations = result[0]
             state = observations
             reward = result[1]
@@ -198,9 +198,9 @@ class train_dqn():
         # self.TargetNet = dqn.agent()
         # self.TrainNet = dqn.agent()
 
-        load = False
+        load = True
         if load:
-            model_name = "model.2020.08.12-19.42.21-I.100-N.1000"
+            model_name = "model.2020.09.03-07.58.35-I.100-N.1000"
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
             self.TrainNet.model = tf.saved_model.load(directory)
             directory = "tictactoe/models/"+model_name+"/TargetNet/"
