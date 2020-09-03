@@ -1,3 +1,4 @@
+
 import numpy as np
 import tensorflow as tf
 import os
@@ -132,7 +133,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["tictactoe"]
+        game = games["snake"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
