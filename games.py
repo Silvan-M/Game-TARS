@@ -369,6 +369,81 @@ class tictactoe:
             print(self.state[6:9], "   ", [6,7,8])
             print("Done: ", done,"Winner: ", winner,"Reward: ", reward,"Won: ", won,"Lose: ", lose)
         return [self.state, reward, done, won, lose, illegalmove, activePlayer]
+class space_invader:
+        def __init__(self):
+            self.illegalcount = 0
+
+            # Important field size variable
+            self.width = 10
+
+            # Variables
+            self.lenstate = self.width* 5 * 50 
+            self.state = [0] * self.lenstate 
+            
+            self.batch_size = 2
+
+            gamma = 0.9
+            copy_step = 50
+            num_state = len(self.state)
+            num_actions = 3 # 0 = Left, 1 = Right, 2 = Fire
+            hidden_units = [27*9]
+            max_experience = 50000
+            min_experience = 100
+            alpha = 0.01
+            epsilon = 1
+            min_epsilon = 0.01
+            decay = 0.99
+            self.variables = [self.state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, self.batch_size, alpha, epsilon, min_epsilon, decay]
+
+            # Enable debugging if necessary
+            self.debugging = False
+            
+            # space_invaders variables
+            self.ship = [50]
+
+            # Snake rewards
+            self.reward_enemy_lvl1_destroyed = 10 # Ship destroys enemy lvl1
+            self.reward_enemy_lvl2_destroyed = 100 # Ship destroys enemy lvl2
+            self.reward_enemy_lvl3_destroyed = 300 # Ship destroys enemy lvl3
+            self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
+            self.reward_ship_destroyed = -1000 # Ship gets destroyed
+
+        # 0 = air
+        # 1 = ship
+        # 2 = enemy_lvl1
+        # 3 = enemy_lvl2
+        # 4 = enemy_lvl3
+        # 5 = ship_bullet
+        # 6 = enemy_bullet
+        def conversion(self,mode): # converts from onehot to normal, mode = 0: normal --> onehot, mode = 1: onehot --> normal 
+            if mode == 0:
+                conv=[0]* self.lenstate*6
+                for i in range(len(self.state)):
+                    conv[self.state[i]*len(self.state) + i] = 1
+            return(conv)
+
+        def enemy_action(self,lvl):
+            if lvl*2 < random.randint(0,10): #Chance of firing increases per lvl 
+                return(True) #fire
+            else:
+                return(False) #not fire
+
+        def enemy_create(self): #creates randomly an enemy with random lvl
+            ran = random.randint(0,100)
+            if ran < 5:
+                return(3)
+            elif ran < 40 and ran < 5:
+                return(2)
+            else:
+                return(1)
+        def reset(self):
+            self.state = [0] * self.len.state 
+            self.state[3] = 5
+            self.state[2] = 2
+            self.state[9] = 3
+
+        def step(self,action):
+            print('0s')
 
 class snake:
     def __init__(self):
