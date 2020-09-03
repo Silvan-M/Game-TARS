@@ -373,7 +373,7 @@ class tictactoe:
 class snake:
     def __init__(self):
         self.illegalcount = 0
-        self.mode = 0 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
+        self.mode = 1 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
 
         # Important field size variable
         self.field_size = 20 # 20x20 snake grid
@@ -583,9 +583,9 @@ class snake:
 
             return apple+obstacle+direction # 0-4: Apple, 5-8: Obstacle, 9-12: Direction of Snake head | Index: 0=Above, 1=Right, 2=Below, 3=Left
         elif self.mode == 1:
-            self.updateFieldVariable()
-            fieldSnake = self.field
+            fieldSnake = [0]*self.field_size**2
             fieldApple = [0]*self.field_size**2
-            fieldSnake[self.apple] == 0
-            fieldApple[self.apple] == 1
+            for i in self.snake:
+                fieldSnake[i] = 1
+            fieldApple[self.apple] = 1
             return fieldSnake+fieldApple

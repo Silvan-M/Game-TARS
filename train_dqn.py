@@ -92,9 +92,11 @@ class train_dqn():
         iter = 0
         done = False
         observations = state
+        prev_observations = observations
         losses = list()
         while not done: # observes until game is done 
-            action = self.TrainNet.get_action(np.array(observations), epsilon) # TrainNet determines favorable action
+            # Simulate batch size of 2
+            action = self.TrainNet.get_action(np.array([prev_observations, observations]), epsilon) # TrainNet determines favorable action
 
             prev_observations = observations # saves observations
             done, reward, observations =  environment.step(action)
@@ -128,11 +130,11 @@ class train_dqn():
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
-        # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points)
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1]}
+        # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["tictactoe"]
+        game = games["snake"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -162,7 +164,7 @@ class train_dqn():
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
-        log_interval = 100
+        log_interval = game[5]
 
         # For storing logs and model afterwards
         current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
