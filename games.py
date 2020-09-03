@@ -29,7 +29,7 @@ class tictactoe:
         # TicTacToe rewards
         self.reward_tie = 5000
         self.reward_win = 5000
-        self.reward_lose = -600
+        self.reward_lose = -1250
         self.reward_illegal_move = 0
         self.reward_legal_move = 0
         self.reward_immediate_preset = 0
