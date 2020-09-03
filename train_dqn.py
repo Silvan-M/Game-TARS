@@ -8,7 +8,7 @@ import log
 import games as g
 import dqn as dqn
 global MMA
-MMA = False # True = Random, MinMaxAlg = False
+MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
 verbose = 0
 
@@ -76,11 +76,13 @@ class train_dqn():
                 print(environment.state[0:3], "   ", [0,1,2])
                 print(environment.state[3:6], "   ", [3,4,5])
                 print(environment.state[6:9], "   ", [6,7,8])
+                print(environment.convert0neHot(environment.state))
+                print(observations)
+                if environment.convert0neHot(environment.state) != observations:
+                    print("HERE IS THE ISSUE")
                 print("Reward: {0: 3.1f} | Won: {1:5} | Lose: {2:5} | Done: {3}\n".format(rewards,str(won),str(lose),str(done)))
         return rewards, mean(losses), won, lose, illegal_moves #returns rewards and average
-<<<<<<< HEAD
-=======
-
+    
     def play_snake(self, state, environment, epsilon, copy_step):
         environment.reset()
         rewards = 0
@@ -121,97 +123,6 @@ class train_dqn():
                 print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
         return rewards, mean(losses), apples #returns rewards and average
 
->>>>>>> 9e47a18d34bb29097ed3d3740c1c3841ecf5eab6
-    def playNewModel(self, state, environment, epsilon, copy_step):
-        environment.reset()
-        rewards = 0
-        iter = 0
-        done = False
-        observations = state
-        losses = list()
-        illegal_moves = 0
-        while not done: # observes until game is done 
-            # This part stays mostly the same, the change is to query a model for Q values
-            
-            action = self.TrainNet.get_action(np.array(state))
-
-            prev_observations = observations # saves observations
-            # Uncomment following line if you want to test how a purely random agent performs
-            # action = random.randint(0,8)
-            result = environment.step(action,MMA)
-            observations = result[0]
-            state = observations
-            reward = result[1]
-            done = result[2]
-            illegalmove = result[5]
-            if illegalmove:
-                illegal_moves += 1
-            if result[3] == 1:
-                won = True
-            else:
-                won = False
-            if result[4] == 1:
-                lose = True
-            else:
-                lose = False
-            rewards += reward    
-            
-            exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done} # make memory callable as a dictionary
-            # Every step we update replay memory and train main network
-            self.TrainNet.update_replay_memory((np.array(prev_observations), action, reward, np.array(observations), done))
-            self.TrainNet.train(np.array(observations))
-            # loss = TrainNet.train(TargetNet) # returns loss 
-            # if isinstance(loss, int): # checks if loss is an integer
-            #     losses.append(loss)
-            # else:
-            #     losses.append(loss.numpy()) # converted into an integer
-            # iter += 1 # increment the counter
-            # if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
-            #     TargetNet.copy_weights(TrainNet) 
-        return rewards, 50, won, lose, illegal_moves #returns rewards and average
-    
-    def playModel2(self, state, environment, epsilon, copy_step):
-        environment.reset()
-        rewards = 0
-        iter = 0
-        done = False
-        observations = state
-        losses = list()
-        illegal_moves = 0
-        while not done:
-            action = self.TrainNet.act(state)
-
-            prev_observations = observations # saves observations
-            # Uncomment following line if you want to test how a purely random agent performs
-            # action = random.randint(0,8)
-            result = environment.step(action, MMA)
-            observations = result[0]
-            state = observations
-            reward = result[1]
-            done = result[2]
-            illegalmove = result[5]
-
-            if illegalmove and False:
-                print(prev_observations)
-                print("Action: ",action, ";Done: ",done)
-
-            
-            if illegalmove:
-                illegal_moves += 1
-            if result[3] == 1:
-                won = True
-            else:
-                won = False
-            if result[4] == 1:
-                lose = True
-            else:
-                lose = False
-            rewards += reward    
-
-            self.TrainNet.update_mem(prev_observations, action, reward, observations, done)
-            self.TrainNet.train()
-
-        return rewards, 50, won, lose, illegal_moves
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
@@ -219,7 +130,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["snake"]
+        game = games["tictactoe"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -236,13 +147,7 @@ class train_dqn():
         self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
         self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-        # self.TrainNet = dqn.DQNAgent()
-        # self.TargetNet = dqn.DQNAgent()
-
-        # self.TargetNet = dqn.agent()
-        # self.TrainNet = dqn.agent()
-
-        load = True
+        load = False
         if load:
             model_name = "model.2020.09.03-07.58.35-I.100-N.1000"
             directory = "tictactoe/models/"+model_name+"/TrainNet/"
@@ -255,7 +160,7 @@ class train_dqn():
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
-        log_interval = 10
+        log_interval = 100
 
         # For storing logs and model afterwards
         current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")

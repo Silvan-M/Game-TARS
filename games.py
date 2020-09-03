@@ -39,13 +39,13 @@ class tictactoe:
 
     def convert0neHot(self, observation):
         oneHot = 27*[0]
-        for i in range(len(observation)):
+        for i in range(9):
             if observation[i] == 0:
-                oneHot[i+17] = 1
+                oneHot[i+18] = 1
             elif observation[i] == 1:
                 oneHot[i] = 1
             else:
-                oneHot[i+8] = 1
+                oneHot[i+9] = 1
         return oneHot
 
     def isIllegalMove(self, action):
@@ -224,7 +224,7 @@ class tictactoe:
 class snake:
     def __init__(self):
         self.illegalcount = 0
-        self.mode = 1 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
+        self.mode = 0 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
 
         # Important field size variable
         self.field_size = 20 # 20x20 snake grid
@@ -260,7 +260,7 @@ class snake:
         # Snake rewards
         self.reward_apple = 10 # Snake collects apple
         self.reward_closer = 1 # Snake gets closer to the apple
-        self.reward_further = -1 # Snake gets further away from the apple
+        self.reward_further = -2 # Snake gets further away from the apple
         self.reward_death = -100 # Snake dies (runs into wall or itself)
         self.reward_opposite_dir = -1 # Snake tries to go in opposite direction it's heading (not possible in snake)
 
