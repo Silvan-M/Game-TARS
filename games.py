@@ -1,7 +1,7 @@
 import random
 import time
 import min_max_alg as mma
-
+import numpy as np
 class tictactoe:
     def __init__(self):
         self.illegalcount = 0
@@ -374,12 +374,15 @@ class space_invader:
             self.illegalcount = 0
 
             # Important field size variable
-            self.width = 10
+            self.width = 5
 
             # Variables
-            self.lenstate = self.width* 5 * 50 
-            self.state = [0] * self.lenstate 
-            
+            self.lenState = self.width * 5 # 5 pixels per ship
+            self.state = np.zeros((self.lenState,50))
+            #self.oneHotState = [0] * self.lenState * 5
+            self.action = ['R',False] # R = move right, L = move Left, True/False = Fire
+            self.health = 3
+            self.figures = [] # list with all object in the game [object, x_center, y_center]
             self.batch_size = 2
 
             gamma = 0.9
@@ -398,32 +401,47 @@ class space_invader:
             # Enable debugging if necessary
             self.debugging = False
             
-            # space_invaders variables
-            self.ship = [50]
-
-            # Snake rewards
+            # space invaders specific rewards
             self.reward_enemy_lvl1_destroyed = 10 # Ship destroys enemy lvl1
             self.reward_enemy_lvl2_destroyed = 100 # Ship destroys enemy lvl2
             self.reward_enemy_lvl3_destroyed = 300 # Ship destroys enemy lvl3
             self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
+            self.reward_ship_hit = -500 # Ship loses one life
             self.reward_ship_destroyed = -1000 # Ship gets destroyed
-
-        # 0 = air
-        # 1 = ship
-        # 2 = enemy_lvl1
-        # 3 = enemy_lvl2
-        # 4 = enemy_lvl3
-        # 5 = ship_bullet
-        # 6 = enemy_bullet
-        def conversion(self,mode): # converts from onehot to normal, mode = 0: normal --> onehot, mode = 1: onehot --> normal 
+        #States:
+            # 0 = air
+            # 1 = ship
+            # 2 = enemy_lvl1
+            # 3 = enemy_lvl2
+            # 4 = enemy_lvl3
+            # 5 = ship_bullet
+            # 6 = enemy_bullet
+        # converts from onehot to normal, mode = 0: normal --> onehot, mode = 1: onehot --> normal
+        #once the function is called both states [list, onehot] are known and callable
+        '''def setState(self,state,mode): #REPLACE WITH MORE EFFICIENT FUNCTION
+            if self.debugging == True:
+                print('setState called with input: '+str(state)+' and mode ' +str(mode))
             if mode == 0:
-                conv=[0]* self.lenstate*6
-                for i in range(len(self.state)):
-                    conv[self.state[i]*len(self.state) + i] = 1
-            return(conv)
+                conv=[0]* self.lenState*6
+                for i in range(len(state)):
+                    conv[state[i]*len(state) + i] = 1
+                self.oneHotState = conv
+                self.state = state
+                if self.debugging == True:
+                    print('ListState set to: '+str(self.state) +' copied from '+str(state) )
+                    print('OneHotState set to: '+str(self.oneHotState)+' copied from '+str(conv))
+            else:
+                conv=[0]* self.lenState
+                for i in range(len(state)):
+                    state[i//6] = i%6
+                self.oneHotState = state
+                self.state = conv
+            if self.debugging == True:
+                print('ListState set to: '+str(self.state) +' copied from '+str(conv) )
+                print('OneHotState set to: '+str(self.oneHotState)+' copied from '+str(state))'''
 
         def enemy_action(self,lvl):
-            if lvl*2 < random.randint(0,10): #Chance of firing increases per lvl 
+            if lvl*2 < random.randint(0,50): #Chance of firing increases per lvl 
                 return(True) #fire
             else:
                 return(False) #not fire
@@ -436,14 +454,53 @@ class space_invader:
                 return(2)
             else:
                 return(1)
+        def figures_set (self,position,figure):
+            #figures, numbers are center
+            # 0 = air 
+            if figure == 1 and position[0] + 7 < self.lenState and position[0] + 7 > 0 : #checks if position is within the produced region
+                print('yess')
+                print(position)
+                self.state[position[0]][position[1]] = 1
+                self.state[position[0]+3][position[1]] = 1
+                self.state[position[0]+2][position[1]] = 1
+                self.state[position[0]+1][position[1]] = 1
+                self.state[position[0]+2][position[1]-1] = 1
+                self.state[position[0]+2][position[1]+1] = 1
+                self.state[position[0]+1][position[1]-1] = 1
+                self.state[position[0]+2][position[1]+1] = 1
+                     # 
+                    ###
+                    ###           
+               ######1######         
+              ###############
+              ###############  
+              ###############              
+                # 1 = ship          
+            # 2 = enemy_lvl1    
+            # 3 = enemy_lvl2   
+            # 4 = enemy_lvl3  
+            # 5 = ship_bullet
+            # 6 = enemy_bullet 
+            # 7 = enemy_leftovers (get replaced with air)
+           
+            
         def reset(self):
-            self.state = [0] * self.len.state 
-            self.state[3] = 5
-            self.state[2] = 2
-            self.state[9] = 3
+            self.state = np.zeros((self.lenState,50))
+            self.health = 3
+        def print(self):
+            for i in range(len(self.state)):
+                print(self.state[i])
+        '''def step(self,action):
+            for x_value in range(len(self.state)):
+                for y_value in range(len(self.state[x_value])):
+                        if self.state[X_value][y_value]== 1:
+                            if self.action
 
-        def step(self,action):
-            print('0s')
+                        elif self.state[X_value][y_value]== 2:
+                        elif self.state[X_value][y_value]== 3:
+                        elif self.state[X_value][y_value]== 4:
+                        elif self.state[X_value][y_value]== 5:
+                        elif self.state[X_value][y_value]== 6:'''
 
 class snake:
     def __init__(self):
@@ -664,3 +721,6 @@ class snake:
                 fieldSnake[i] = 1
             fieldApple[self.apple] = 1
             return fieldSnake+fieldApple
+g = space_invader()
+g.figures_set([10,10],1)
+g.print()
