@@ -2,6 +2,7 @@ import random
 import time
 import min_max_alg as mma
 import numpy as np
+
 class tictactoe:
     def __init__(self):
         self.illegalcount = 0
@@ -508,14 +509,14 @@ class snake:
         self.mode = 1 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
 
         # Important field size variable
-        self.field_size = 20 # 20x20 snake grid
+        self.field_size = 10 # field_size x field_size snake grid
 
         # Variables
         if self.mode == 0:
             self.state = [0]*12 # 0-4: Apple, 5-8: Obstacle, 9-12: Direction of Snake head | Index: 0=Above, 1=Right, 2=Below, 3=Left
             self.batch_size = 1
         elif self.mode == 1:
-            self.state = [0]*(self.field_size**2)*2
+            self.state = [0]*((self.field_size**2)*2)
             self.batch_size = 2
         gamma = 0.9
         copy_step = 50
@@ -535,22 +536,21 @@ class snake:
         
         # Snake variables
         self.apple = random.randint(0, self.field_size**2-1)
-        self.snake = [110]
+        self.snake = [int(self.field_size/2)]
         self.prevAction = 2
 
         # Snake rewards
         self.reward_apple = 10 # Snake collects apple
         self.reward_closer = 1 # Snake gets closer to the apple
-        self.reward_further = -2 # Snake gets further away from the apple
+        self.reward_further = -1 # Snake gets further away from the apple
         self.reward_death = -100 # Snake dies (runs into wall or itself)
         self.reward_opposite_dir = -1 # Snake tries to go in opposite direction it's heading (not possible in snake)
 
         self.updateFieldVariable()
 
     def reset(self):
-        self.field_size = 20 # 20x20 snake grid
         self.apple = random.randint(0, self.field_size**2-1)
-        self.snake = [110]
+        self.snake = [int(self.field_size/2)]
         self.prevAction = 2
         self.updateFieldVariable()
 
@@ -715,12 +715,24 @@ class snake:
 
             return apple+obstacle+direction # 0-4: Apple, 5-8: Obstacle, 9-12: Direction of Snake head | Index: 0=Above, 1=Right, 2=Below, 3=Left
         elif self.mode == 1:
-            fieldSnake = [0]*self.field_size**2
-            fieldApple = [0]*self.field_size**2
+            fieldSnake = [0]*(self.field_size**2)
+            fieldApple = [0]*(self.field_size**2)
             for i in self.snake:
                 fieldSnake[i] = 1
             fieldApple[self.apple] = 1
             return fieldSnake+fieldApple
-g = space_invader()
-g.figures_set([10,10],1)
-g.print()
+
+if __name__ == '__main__':
+    # This code block will only run if you directly run games.py
+    
+    # If you want to run train_dqn.py when running this file (so switching is not required) set this to true
+    trainWhenRun = True
+
+    if trainWhenRun:
+        module = __import__('train_dqn')
+        train_dqn = getattr(module, 'train_dqn')()
+        train_dqn.main(False)
+    else:
+        g = space_invader()
+        g.figures_set([10,10],1)
+        g.print()
