@@ -182,7 +182,7 @@ def plotSnake(log_path):
 # If you want to plot a Log set the model name or relative path here, if empty nothing will be plotted
 model_name = {"tictactoe":"", "snake":""}
 # If you want to plot your last training, change those variables
-plot_last = {"tictactoe":False, "snake":True}
+plot_last = {"tictactoe":False, "snake":False}
 
 
 plot_functions = {"tictactoe": plotTicTacToe, "snake": plotSnake}
