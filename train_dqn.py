@@ -158,13 +158,17 @@ class train_dqn():
         self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
         self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-        load = False
-        if load:
-            model_name = "model.2020.09.03-16.49.34-I.100-N.500"
-            directory = "tictactoe/models/"+model_name+"/TrainNet/"
-            self.TrainNet.model = tf.saved_model.load(directory)
-            directory = "tictactoe/models/"+model_name+"/TargetNet/"
-            self.TargetNet.model = tf.saved_model.load(directory)
+        # LOADING MODELS - Set one of the variables if you want to load a model
+        # Define model name
+        model_name = ""
+        # Alternatively define relative model path
+        model_path = ""
+        
+        if model_name != "" or model_path != "":
+            if model_path == "":
+                model_path = game[2]+model_name
+            self.TrainNet.model = tf.saved_model.load(model_path+"/TrainNet/")
+            self.TargetNet.model = tf.saved_model.load(model_path+"/TargetNet/")
             
 
         N = int(input("How many episodes do you want to train?\n"))
@@ -216,7 +220,7 @@ class train_dqn():
                 total_points.append(points)
                 if (n % log_interval == 0) and (n != 0) or (n == N-1):
                     avg_points = sum(total_points) / len(total_points)
-                    print("Eps.: {0:{1}.0f} | Eps. Reward: {2:7.2f} | Epsilon: {3:2.1f} | Avg. Rew. (last {4:.0f}): {5:6.1f} | Eps. Loss: {6:6.1f} | Points: {7:6.1f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
+                    print("Eps.: {0:{1}.0f} | Eps. Reward: {2:7.0f} | Epsilon: {3:5.3f} | Avg. Rew. (last {4:.0f}): {5:6.1f} | Eps. Loss: {6:8.1f} | Points: {7:6.1f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
                     
                     f = open(log_path, "a")
                     f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(avg_points)+"\n"))

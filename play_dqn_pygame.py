@@ -526,19 +526,19 @@ class play_dqn_pygame:
 
         move_ticker = 0
         keys=pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             if move_ticker == 0:
                 move_ticker = 10
                 self.action = 3
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             if move_ticker == 0:   
                 move_ticker = 10     
                 self.action = 1
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             if move_ticker == 0:   
                 move_ticker = 10     
                 self.action = 0
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             if move_ticker == 0:   
                 move_ticker = 10     
                 self.action = 2
@@ -555,6 +555,11 @@ class play_dqn_pygame:
                 self.won = 0
                 self.previousGame = self.snakeP
                 self.currentScreenFunction = self.endSnake
+
+    def abortAndRetry(self):
+        self.currentScreenFunction = self.previousGame
+        self.first = True
+        self.reallyFirst = True
 
     def snakeAI(self):
         if self.first:
@@ -577,6 +582,9 @@ class play_dqn_pygame:
             self.first = self.reallyFirst
             model_name = self.ModelMenu()
             self.first = True
+
+            # Is set for the abort and retry function
+            self.previousGame = self.snakeAI
             
             if self.modelLoaded == False:
                 if model_name:
@@ -593,7 +601,8 @@ class play_dqn_pygame:
             # Clear screen and set background color
             self.screen.fill(self.Black)
 
-            self.addButton("Back", 70 ,565, 100, 30, self.back)
+            self.addButton("Back", 120 ,570, 200, 30, self.back)
+            self.addButton("Abort and Retry", 680 ,570, 200, 30, self.abortAndRetry)
             self.drawSnake()
 
             if self.action != -1 and (self.counter % 5 == 0):
@@ -684,8 +693,10 @@ class play_dqn_pygame:
         models = os.listdir(r'{}/models'.format(self.subpath))
         #models = ['1','2','3','4','5']
         MatModel = []
-        for i in range(len(models)):
-            MatModel.append([models[i],None])
+        for i, v in enumerate(models):
+            if v != ".DS_Store":
+                MatModel.append([v,None])
+        MatModel = sorted(MatModel, reverse=True)
         return(self.scrollBar(0,MatModel, 'x'))
 
     def scrollbarMenu(self):

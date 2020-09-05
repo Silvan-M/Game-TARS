@@ -527,8 +527,8 @@ class snake:
         min_experience = 100
         alpha = 0.01
         epsilon = 1
-        min_epsilon = 0.01
-        decay = 0.99
+        min_epsilon = 0.05
+        decay = 0.999
         self.variables = [self.state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, self.batch_size, alpha, epsilon, min_epsilon, decay]
 
         # Enable debugging if necessary
@@ -536,23 +536,32 @@ class snake:
         
         # Snake variables
         self.apple = random.randint(0, self.field_size**2-1)
-        self.snake = [int(self.field_size/2)]
+        self.snake = [int(self.field_size**2/2)]
         self.prevAction = 2
+        self.memory = []
 
         # Snake rewards
-        self.reward_apple = 10 # Snake collects apple
-        self.reward_closer = 1 # Snake gets closer to the apple
-        self.reward_further = -1 # Snake gets further away from the apple
+        self.reward_apple = 1000 # Snake collects apple
+        self.reward_closer = 10 # Snake gets closer to the apple
+        self.reward_further = -15 # Snake gets further away from the apple
         self.reward_death = -100 # Snake dies (runs into wall or itself)
-        self.reward_opposite_dir = -1 # Snake tries to go in opposite direction it's heading (not possible in snake)
+        self.reward_opposite_dir = -15 # Snake tries to go in opposite direction it's heading (not possible in snake)
+        self.reward_repetitive = -15 # If the snake ends up in the exact same situation as in the last 6 steps
 
         self.updateFieldVariable()
 
     def reset(self):
         self.apple = random.randint(0, self.field_size**2-1)
-        self.snake = [int(self.field_size/2)]
+        self.snake = [int(self.field_size**2/2)]
         self.prevAction = 2
+        self.memory = []
         self.updateFieldVariable()
+
+    def addMemory(self):
+
+        if len(self.memory) == 6:
+            self.memory.pop(0)
+        self.memory.append(self.field)
 
     def step(self, action):
         # Evaluate action, detect if it hits the wall or itself
@@ -591,6 +600,11 @@ class snake:
         
         self.updateFieldVariable()
         
+        if self.field in self.memory:
+            reward += self.reward_repetitive
+
+        self.addMemory()
+
         if not opposite:
             self.prevAction = action
         return False, reward, self.getState(action)
