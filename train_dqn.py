@@ -1,7 +1,13 @@
 
 import numpy as np
-import tensorflow as tf
 import os
+import logging
+
+# Disable TensorFlow logging:
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+import tensorflow as tf
 import datetime
 from statistics import mean
 import random
@@ -162,7 +168,7 @@ class train_dqn():
         # Define model name
         model_name = ""
         # Alternatively define relative model path
-        model_path = ""
+        model_path = "snake\models\model.2020.09.05-20.15.07-I.10-N.20000"
         
         if model_name != "" or model_path != "":
             if model_path == "":
@@ -237,10 +243,3 @@ if __name__ == '__main__':
     # Set Parameter to true if you want to load the model on the path above and test it
     train_dqn = train_dqn()
     train_dqn.main(False)
-
-
-
-
-
-
-

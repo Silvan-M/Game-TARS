@@ -1,6 +1,12 @@
 import numpy as np
-import tensorflow as tf
 import os
+import logging
+
+# Disable TensorFlow logging:
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+import tensorflow as tf
 import datetime
 from statistics import mean
 import random
@@ -8,9 +14,6 @@ import log
 import logging
 import games as g
 
-# Disable TensorFlow logging:
-logging.getLogger('tensorflow').disabled = True
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has ability to group layers into an object with training and inference (interpreter) features.
     def __init__(self, num_states, hidden_units, num_actions):

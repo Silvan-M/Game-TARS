@@ -1,8 +1,14 @@
 import pygame 
 from pygame import gfxdraw
 import numpy as np
-import tensorflow as tf
 import os
+import logging
+
+# Disable TensorFlow logging:
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+import tensorflow as tf
 import datetime
 from statistics import mean
 import random
