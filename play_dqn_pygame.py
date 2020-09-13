@@ -183,7 +183,7 @@ class play_dqn_pygame:
 
 
     # SCREEN FUNCTIONS: Functions which display certain scenes
-
+    
     # Tic Tac Toe Screen Functions
     def endGame(self):
         self.screen.fill(self.Black)
@@ -618,8 +618,51 @@ class play_dqn_pygame:
         self.addButton("Player", 400, 250, 400, 40, self.snakeP)
         self.addButton("AI", 400, 350, 400, 40, self.snakeAI)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
+    # SpaceInvader screen function
 
-    # General Screen Functions
+    def spaceInvaderMenu(self):
+        # Clear screen and set background color
+        self.screen.fill(self.Black)
+        self.modelLoaded = False
+        self.addText("Who should play?", self.blanka, 60, self.White, 400, 100)
+        self.addButton("Player", 400, 250, 400, 40, self.spaceInvaderP)
+        self.addButton("AI", 400, 350, 400, 40, self.back)
+        self.addButton("Back", 70 ,565, 100, 30, self.back)
+
+
+    def spaceInvaderP(self):
+        if self.first:
+            self.first = False
+            self.spaceInvader = g.space_invader()
+            self.field = [ self.spaceInvader.lenState,self.spaceInvader.height]
+            self.ratio = self.spaceInvader.lenState/self.spaceInvader.height
+            self.counter = 0
+            self.action = 0
+            self.buffer = 0
+            self.score = 0
+            self.width = 400
+            self.dimensions = [self.ratio * self.width , self.width ]
+        self.drawSpaceInvader()
+
+    def drawSpaceInvader(self):
+        self.buffer +=1
+        self.screen.fill(self.Black)
+        pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2, 250 - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]], 3)
+        self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
+        for x in range (len(self.spaceInvader.state)):
+            for y in range(len(self.spaceInvader.state[x])):
+                x_len = self.dimensions[0]/self.field[0]
+                y_len = self.dimensions[1]/self.field[1]
+                x_coord = 400 - self.dimensions[0]/2 + x*x_len 
+                y_coord = 250 - self.dimensions[1]/2 + y*y_len
+                if self.spaceInvader.state[x][y] == 0  :
+                    pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len]) 
+        if self.buffer % 10 == 0: 
+            print(self.spaceInvader.print())
+            self.spaceInvader.step()
+            #print('step called')
+            #for i in range(len(self.spaceInvader.state)):
+             #   print(self.spaceInvader.state[i])
 
     def scrollBar(self, page, item, mode):
         if self.first:
@@ -700,7 +743,7 @@ class play_dqn_pygame:
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake', 400, 350, 400, 40, self.snakeMenu)
-        self.addButton("Tetris (Work in Progress)", 400, 400, 400, 40, self.ticTacToeMenu)
+        self.addButton("Space Invaders", 400, 400, 400, 40, self.spaceInvaderMenu)
 
     def back(self):
         self.first = True

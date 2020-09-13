@@ -24,7 +24,7 @@ class tictactoe:
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
 
         # Enable debugging if necessary
-        self.debugging = False
+        self.debugging = True
         
         # TicTacToe rewards
         self.reward_tie = 5000
@@ -374,17 +374,83 @@ class space_invader:
             self.illegalcount = 0
 
             # Important field size variable
-            self.width = 5
 
             # Variables
-            self.lenState = self.width * 5 # 5 pixels per ship
-            self.state = np.zeros((self.lenState,50))
+            self.lenState = 200
+            self.height = 150
+            self.state = np.zeros((self.lenState,self.height))
+                                        #position[0], position[1] = position[1] , position[0]         
+                # 1 = ship
+                # 2 = enemy_lvl1    
+                # 3 = enemy_lvl2   
+                # 4 = enemy_lvl3  
+                # 5 = ship_bullet
+                # 6 = enemy_bullet 
+                # 7 = enemy_leftovers (get replaced with air)
+                # 8 = air (for bullets)
+                # figures, c = 9 mark the center
+            self.c = 9
+            self.air = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], # for clearing 
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
+            self.ship = [[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+                        [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+                        [0,1,1,1,1,1,1,self.c,1,1,1,1,1,1,0],
+                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]] 
+
+            self.enemy_lvl1 = [[0,0,0,0,0,0,0,2,0,0,0,0,0,0,0],
+                            [0,0,0,0,0,0,2,2,2,0,0,0,0,0,0],
+                            [0,0,0,0,0,2,0,2,0,2,0,0,0,0,0],
+                            [0,0,0,0,2,2,0,self.c,0,2,2,0,0,0,0],
+                            [0,0,0,2,2,2,2,2,2,2,2,2,0,0,0],
+                            [0,0,0,0,0,2,2,2,2,2,0,0,0,0,0],
+                            [0,0,0,0,2,0,2,0,2,0,2,0,0,0,0]]
+
+            self.enemy_lvl2 = np.array( [[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0],
+                            [0,0,0,0,0,3,3,3,3,3,0,0,0,0,0],
+                            [0,0,0,0,3,3,3,3,3,3,3,0,0,0,0],
+                            [0,0,0,3,0,3,3,self.c,3,3,0,3,0,0,0],
+                            [0,0,0,3,0,3,3,0,3,3,0,3,0,0,0],
+                            [0,0,0,0,3,3,3,3,3,3,3,0,0,0,0],
+                            [0,0,0,0,0,3,0,3,0,3,0,0,0,0,0]])
+
+            self.enemy_lvl3 = [[0,0,4,4,4,4,4,4,4,4,4,4,4,0,0],
+                            [0,4,4,4,4,4,4,4,4,4,4,4,4,4,0],
+                            [4,4,4,4,4,4,0,4,0,4,4,4,4,4,4],
+                            [0,4,4,4,4,0,4,self.c,4,0,4,4,4,4,0],
+                            [0,0,4,0,4,4,4,4,4,4,4,0,4,0,0],
+                            [0,0,0,4,0,4,0,4,0,4,0,4,0,0,0],
+                            [0,0,4,4,0,4,0,4,0,4,0,4,4,0,0]]
+
+            self.enemy_leftovers = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                [0,0,0,0,7,0,0,7,0,0,7,0,0,0,0],
+                                [0,0,7,0,0,0,0,0,0,0,0,7,0,0,0],
+                                [0,0,0,0,0,0,0,self.c,7,0,7,0,0,0,0],
+                                [0,7,0,7,0,0,7,7,7,0,0,0,7,0,0],
+                                [0,0,0,0,0,0,0,0,0,0,7,0,0,0,0],
+                                [0,0,0,7,0,7,0,7,0,0,7,0,0,0,0]]
+            self.enemy_lvl2 = np.rot90(self.enemy_lvl2)
+            self.enemy_lvl1 = np.rot90(self.enemy_lvl1)
+            self.enemy_lvl3 = np.rot90(self.enemy_lvl3)
+            self.ship = np.rot90(self.ship)
+            self.air = np.rot90(self.air)
+            self.enemy_leftovers = np.rot90(self.enemy_leftovers)
             #self.oneHotState = [0] * self.lenState * 5
             self.action = ['R',False] # R = move right, L = move Left, True/False = Fire
             self.health = 3
             self.figures = [] # list with all object in the game [object, x_center, y_center]
             self.batch_size = 2
-
+            self.figures_set([15,20], 3)
+            self.figures_set([72,20], 3)
+            self.figures_set([50,20], 3)
             gamma = 0.9
             copy_step = 50
             num_state = len(self.state)
@@ -416,32 +482,9 @@ class space_invader:
             # 4 = enemy_lvl3
             # 5 = ship_bullet
             # 6 = enemy_bullet
-        # converts from onehot to normal, mode = 0: normal --> onehot, mode = 1: onehot --> normal
-        #once the function is called both states [list, onehot] are known and callable
-        '''def setState(self,state,mode): #REPLACE WITH MORE EFFICIENT FUNCTION
-            if self.debugging == True:
-                print('setState called with input: '+str(state)+' and mode ' +str(mode))
-            if mode == 0:
-                conv=[0]* self.lenState*6
-                for i in range(len(state)):
-                    conv[state[i]*len(state) + i] = 1
-                self.oneHotState = conv
-                self.state = state
-                if self.debugging == True:
-                    print('ListState set to: '+str(self.state) +' copied from '+str(state) )
-                    print('OneHotState set to: '+str(self.oneHotState)+' copied from '+str(conv))
-            else:
-                conv=[0]* self.lenState
-                for i in range(len(state)):
-                    state[i//6] = i%6
-                self.oneHotState = state
-                self.state = conv
-            if self.debugging == True:
-                print('ListState set to: '+str(self.state) +' copied from '+str(conv) )
-                print('OneHotState set to: '+str(self.oneHotState)+' copied from '+str(state))'''
 
         def enemy_action(self,lvl):
-            if lvl*2 < random.randint(0,50): #Chance of firing increases per lvl 
+            if lvl*2 > random.randint(0,50): #Chance of firing increases per lvl 
                 return(True) #fire
             else:
                 return(False) #not fire
@@ -455,52 +498,103 @@ class space_invader:
             else:
                 return(1)
         def figures_set (self,position,figure):
-            #figures, numbers are center
-            # 0 = air 
-            if figure == 1 and position[0] + 7 < self.lenState and position[0] + 7 > 0 : #checks if position is within the produced region
-                print('yess')
-                print(position)
-                self.state[position[0]][position[1]] = 1
-                self.state[position[0]+3][position[1]] = 1
-                self.state[position[0]+2][position[1]] = 1
-                self.state[position[0]+1][position[1]] = 1
-                self.state[position[0]+2][position[1]-1] = 1
-                self.state[position[0]+2][position[1]+1] = 1
-                self.state[position[0]+1][position[1]-1] = 1
-                self.state[position[0]+2][position[1]+1] = 1
-                     # 
-                    ###
-                    ###           
-               ######1######         
-              ###############
-              ###############  
-              ###############              
-                # 1 = ship          
-            # 2 = enemy_lvl1    
-            # 3 = enemy_lvl2   
-            # 4 = enemy_lvl3  
-            # 5 = ship_bullet
-            # 6 = enemy_bullet 
-            # 7 = enemy_leftovers (get replaced with air)
-           
-            
+
+            # checks if the potential figure can be placed in the foreseen region, checked in every direction, dimension are [15,7]¨
+            # ifso returns True, else False
+            try:
+                if figure == 1 and (position[0] + 7 < self.lenState) and (position[0] -7) > 0 and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.ship
+                    return(True)
+                elif figure == 2 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl1
+                    return(True)
+                elif figure == 3 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl2
+                    return(True)
+                elif figure == 4 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl3
+                    return(True)
+                elif figure == 7 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_leftovers
+                    return(True)
+                elif figure == 0 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.air
+                    return(True)
+                #bullets
+                elif figure == 5 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
+                    self.state[position[0]][position[1]] = self.c
+                    self.state[position[0]-1][position[1]] = 5
+                    self.state[position[0]-1][position[1]-1] = 5
+                    self.state[position[0]-1][position[1]+1] = 5
+                    return(True)
+
+                elif figure == 6 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
+                    self.state[position[0]][position[1]] = self.c
+                    self.state[position[0]+1][position[1]] = 6
+                    self.state[position[0]+1][position[1]-1] = 6
+                    self.state[position[0]+1][position[1]+1] = 6
+                
+                    return(True)
+                elif figure == 8 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
+                    self.state[position[0]][position[1]] = 0
+                    self.state[position[0]+1][position[1]] = 0
+                    self.state[position[0]-1][position[1]] = 0
+                    self.state[position[0]-1][position[1]-1] = 0
+                    self.state[position[0]-1][position[1]+1] = 0
+                    self.state[position[0]+1][position[1]-1] = 0
+                    self.state[position[0]+1][position[1]+1] = 0
+                    return(True)
+                else:
+                    return(False)
+            except IndexError:
+                return(False)
         def reset(self):
-            self.state = np.zeros((self.lenState,50))
-            self.health = 3
+            self.state = np.zeros((self.lenState,self.height))
         def print(self):
             for i in range(len(self.state)):
                 print(self.state[i])
-        '''def step(self,action):
+        def step(self):
+            figures = []
+            # iterating over x and y values
             for x_value in range(len(self.state)):
-                for y_value in range(len(self.state[x_value])):
-                        if self.state[X_value][y_value]== 1:
-                            if self.action
+                for y_value in range(len(self.state[x_value])): #only applicable with object that move upwards or right to left
+                    # looking for centerpieces
+                        if self.state[x_value][y_value]== 9:
+                            if self.debugging == True:
+                                print('Center found at: '+str(x_value)+','+str(y_value))
+                                print('Marker: '+str(self.state[x_value+1][y_value+1]))
+                            # associate object with type [ship, enemy_lvl1,enemy_lvl2, enemy_lvl3, enemy_bullet, ship_bullet, enemy_leftovers]
+                            figures.append([x_value,y_value,self.state[x_value+1][y_value+1]])
+                            if self.debugging:
+                                print(figures)
+            self.reset()
+            for i in range(len(figures)):
+                '''if figures[2] == 1:
+                    print('data')'''
+                if figures[i][2] == 2:
+                    self.figures_set([figures[i][0],figures[i][1]],2)
+                    if self.enemy_action(1):
+                        self.figures_set([figures[i][0],figures[i][1]+4],6)
+                elif figures[i][2] == 3:
+                    self.figures_set([figures[i][0],figures[i][1]],3)
+                    if self.enemy_action(2):
+                        self.figures_set([figures[i][0],figures[i][1]+4],6)
+                elif figures[i][2] == 4:
+                    print('mx')
+                    self.figures_set([figures[i][0],figures[i][1]+4],4)
+                    if self.enemy_action(3):
+                        self.figures_set([figures[i][0],figures[i][1]],6)
 
-                        elif self.state[X_value][y_value]== 2:
-                        elif self.state[X_value][y_value]== 3:
-                        elif self.state[X_value][y_value]== 4:
-                        elif self.state[X_value][y_value]== 5:
-                        elif self.state[X_value][y_value]== 6:'''
+
+                if figures[i][2] == 5:
+                    self.figures_set([figures[i][0],figures[i][1]-1],figures[i][2])
+                elif figures[i][2] == 6:
+                    self.figures_set([figures[i][0],figures[i][1]+1],figures[i][2])
+            self.figures=[]
+
+
+
+
 
 class snake:
     def __init__(self):
@@ -721,6 +815,4 @@ class snake:
                 fieldSnake[i] = 1
             fieldApple[self.apple] = 1
             return fieldSnake+fieldApple
-g = space_invader()
-g.figures_set([10,10],1)
-g.print()
+
