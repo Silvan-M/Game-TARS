@@ -1,7 +1,13 @@
 
 import numpy as np
-import tensorflow as tf
 import os
+import logging
+
+# Disable TensorFlow logging:
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+import tensorflow as tf
 import datetime
 from statistics import mean
 import random
@@ -28,21 +34,16 @@ class train_dqn():
             # Set to False if you want illegalmoves, if True it will pick the highest legal q value 
             if True:
                 environment.reward_illegal_move = 0
-                randMove, q = self.TrainNet.get_q(np.array(observations), epsilon) # TrainNet determines favorable action
+                randMove, prob = self.TrainNet.get_prob(np.array(observations), epsilon) # TrainNet determines favorable action
                 
                 if not randMove:
-                    q_list_prob=[]
-                    q_list_min = np.min(q)
-                    q_list_max = np.max(q)
-                    for qi in q:
-                        q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
-                    for i, p in enumerate(q_list_prob):
+                    for i, p in enumerate(prob):
                         if environment.isIllegalMove(i):
-                            q_list_prob[i] = - 1
-                    action = np.argmax(q_list_prob)
+                            prob[i] = - 1
+                    action = np.argmax(prob)
                     
                 else:
-                    action = q
+                    action = prob
             else:
                 action = self.TrainNet.get_action(np.array(observations), epsilon) 
 
@@ -96,12 +97,23 @@ class train_dqn():
         prev_observations = observations
         losses = list()
         while not done: # observes until game is done 
-            # Simulate batch size of 2
-            action = self.TrainNet.get_action(np.array([prev_observations, observations]), epsilon) # TrainNet determines favorable action
+            
+            inp = observations
+            if self.TrainNet.batch_size > 1:
+                # Simulate batch size of 2
+                inp = [prev_observations, observations]
 
+            _, prob = self.TrainNet.get_prob(np.array(inp), 0) # TrainNet determines favorable action
+            
+            if np.random.random() < epsilon:
+                delete = np.argmax(prob)
+                prob[delete] = -1
+            
+            action = np.argmax(prob)
+            
             prev_observations = observations # saves observations
             done, reward, observations =  environment.step(action)
-            
+
             if reward == environment.reward_apple:
                 apples += 1
 
@@ -135,7 +147,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["tictactoe"]
+        game = games["snake"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -152,13 +164,17 @@ class train_dqn():
         self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
         self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
 
-        load = False
-        if load:
-            model_name = "model.2020.09.03-16.49.34-I.100-N.500"
-            directory = "tictactoe/models/"+model_name+"/TrainNet/"
-            self.TrainNet.model = tf.saved_model.load(directory)
-            directory = "tictactoe/models/"+model_name+"/TargetNet/"
-            self.TargetNet.model = tf.saved_model.load(directory)
+        # LOADING MODELS - Set one of the variables if you want to load a model
+        # Define model name
+        model_name = ""
+        # Alternatively define relative model path
+        model_path = "snake\models\model.2020.09.05-20.15.07-I.10-N.20000"
+        
+        if model_name != "" or model_path != "":
+            if model_path == "":
+                model_path = game[2]+model_name
+            self.TrainNet.model = tf.saved_model.load(model_path+"/TrainNet/")
+            self.TargetNet.model = tf.saved_model.load(model_path+"/TargetNet/")
             
 
         N = int(input("How many episodes do you want to train?\n"))
@@ -210,7 +226,7 @@ class train_dqn():
                 total_points.append(points)
                 if (n % log_interval == 0) and (n != 0) or (n == N-1):
                     avg_points = sum(total_points) / len(total_points)
-                    print("Eps.: {0:{1}.0f} | Eps. Reward: {2:7.2f} | Epsilon: {3:2.1f} | Avg. Rew. (last {4:.0f}): {5:6.1f} | Eps. Loss: {6:6.1f} | Points: {7:6.1f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
+                    print("Eps.: {0:{1}.0f} | Eps. Reward: {2:7.0f} | Epsilon: {3:5.3f} | Avg. Rew. (last {4:.0f}): {5:6.1f} | Eps. Loss: {6:8.1f} | Points: {7:6.1f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, avg_points))
                     
                     f = open(log_path, "a")
                     f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(avg_points)+"\n"))
@@ -227,6 +243,3 @@ if __name__ == '__main__':
     # Set Parameter to true if you want to load the model on the path above and test it
     train_dqn = train_dqn()
     train_dqn.main(False)
-
-
-

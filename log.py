@@ -177,12 +177,41 @@ def plotSnake(log_path):
     plt.savefig('snake/figures/fig.'+timeAndInfo+".pdf")
     plt.show()
 
-# If you want to plot a Log set the model name here, if empty nothing will be performed
-tictactoe_model_name = ""
-snake_model_name = ""
 
-if tictactoe_model_name != "":
-    plotTicTacToe("ticatactoe/logs/"+tictactoe_model_name)
+# PLOT A LOG MANUALLY
+# If you want to plot a Log set the model name or relative path here, if empty nothing will be plotted
+model_name = {"tictactoe":"", "snake":""}
+# If you want to plot your last training, change those variables
+plot_last = {"tictactoe":False, "snake":False}
 
-if snake_model_name != "":
-    plotSnake("snake/logs/"+snake_model_name)
+
+plot_functions = {"tictactoe": plotTicTacToe, "snake": plotSnake}
+for i in model_name:
+    path = model_name[i]
+    if path != "":
+        # Correct if user inserted a relative path
+        if i+"/logs/" in path:
+            path = path.replace(i+"/logs/","",1)
+            print("Changing removing relative log path from string")
+        if i+"/models/" in path:
+            path = path.replace(i+"/models/","",1)
+            print("Changing removing relative model path from string")
+        # Correct if user inserted a model path
+        if "model" in path:
+            print("Changing 'model' to 'log' in path")
+            path = path.replace("model","log",1)+".txt"
+        path = i+"/logs/"+path
+        print("Plotting: "+path)
+        plot_functions[i](path)
+
+for i in plot_last:
+    if plot_last[i]:
+        logs = os.listdir(r'{}/logs'.format(i))
+        MatLogs = []
+        for j, v in enumerate(logs):
+            if v != ".DS_Store":
+                MatLogs.append(v)
+        MatLogs = sorted(MatLogs)
+        path = i+"/logs/"+str(MatLogs[-1])
+        print("Plotting: "+path)
+        plot_functions[i](path)

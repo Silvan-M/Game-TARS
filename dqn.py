@@ -1,11 +1,19 @@
 import numpy as np
-import tensorflow as tf
 import os
+import logging
+
+# Disable TensorFlow logging:
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
+import tensorflow as tf
 import datetime
 from statistics import mean
 import random
 import log
+import logging
 import games as g
+
 
 class MyModel(tf.keras.Model): # class with format tensorflow.keras.model, has ability to group layers into an object with training and inference (interpreter) features.
     def __init__(self, num_states, hidden_units, num_actions):
@@ -43,7 +51,7 @@ class DQN:
         self.min_experiences = min_experiences # sets the start of the agent learning
 
     def predict(self, inputs):
-        return self.model(np.atleast_2d(inputs.astype('int'))) # returns a prediction by a model, inputs get converted to float32 and forwarded to tf.keras.model
+        return self.model(np.atleast_2d(inputs.astype('float32'))) # returns a prediction by a model, inputs get converted to float32 and forwarded to tf.keras.model
 
     def train(self, TargetNet):
         if len(self.experience['s']) < self.min_experiences: # checks if the amount of memorized initial states is smaller than the needed quantity
@@ -84,6 +92,18 @@ class DQN:
             return True, np.random.choice(self.num_actions) # selects a random choice (exploration)
         else:
             return False, self.predict(np.atleast_2d(states))[0] # selects a greedy choice (max value computed by the network - exploitation)
+
+    def get_prob(self, states, epsilon):
+        if np.random.random() < epsilon: # compares a random number with the exploration factor which gets reduced over time to increase exploitation
+            return True, np.random.choice(self.num_actions) # selects a random choice (exploration)
+        else:
+            q = self.predict(np.atleast_2d(states))[0]
+            q_list_prob=[]
+            q_list_min = np.min(q)
+            q_list_max = np.max(q)
+            for qi in q:
+                q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
+            return False, q_list_prob # selects a greedy choice (max value computed by the network - exploitation)
 
     def add_experience(self, exp): # memorizes experience, if the max amount is exceeded the oldest element gets deleted
         if len(self.experience['s']) >= self.max_experiences:
