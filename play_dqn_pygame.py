@@ -655,25 +655,27 @@ class play_dqn_pygame:
             self.action = 0
             self.buffer = 0
             self.score = 0
-            self.width = 400
-            self.dimensions = [self.ratio * self.width , self.width ]
+            self.width = 300
+            self.dimensions = [int(self.ratio * self.width) , int(self.width) ]
         self.drawSpaceInvader()
 
     def drawSpaceInvader(self):
         self.buffer +=1
         self.screen.fill(self.Black)
-        pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2, 250 - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]], 3)
+        pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2, 250 - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]], 4)
         self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
+        x_len = self.dimensions[0]/self.field[0]
+        x_len = int(x_len) 
+        y_len = self.dimensions[1]/self.field[1]
+        y_len = int(y_len)
         for x in range (len(self.spaceInvader.state)):
             for y in range(len(self.spaceInvader.state[x])):
-                x_len = self.dimensions[0]/self.field[0]
-                y_len = self.dimensions[1]/self.field[1]
                 x_coord = 400 - self.dimensions[0]/2 + x*x_len 
                 y_coord = 250 - self.dimensions[1]/2 + y*y_len
                 if self.spaceInvader.state[x][y] == 0  :
                     pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len]) 
-        if self.buffer % 10 == 0: 
-            print(self.spaceInvader.print())
+        if self.buffer % 1 == 0: 
+            #print(self.spaceInvader.print())
             self.spaceInvader.step()
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):

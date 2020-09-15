@@ -377,8 +377,8 @@ class space_invader:
             # Important field size variable
 
             # Variables
-            self.lenState = 200
-            self.height = 150
+            self.lenState = 160
+            self.height = 80
             self.state = np.zeros((self.lenState,self.height))
                                         #position[0], position[1] = position[1] , position[0]         
                 # 1 = ship
@@ -449,9 +449,9 @@ class space_invader:
             self.health = 3
             self.figures = [] # list with all object in the game [object, x_center, y_center]
             self.batch_size = 2
-            self.figures_set([15,20], 3)
-            self.figures_set([72,20], 3)
-            self.figures_set([50,20], 3)
+            
+            
+            self.figures_set([50,50], 3)
             gamma = 0.9
             copy_step = 50
             num_state = len(self.state)
@@ -830,8 +830,6 @@ class snake:
             fieldApple[self.apple] = 1
             return fieldSnake+fieldApple
 
-<<<<<<< HEAD
-=======
 if __name__ == '__main__':
     # This code block will only run if you directly run games.py
     
@@ -846,4 +844,3 @@ if __name__ == '__main__':
         g = space_invader()
         g.figures_set([10,10],1)
         g.print()
->>>>>>> 08a75502ef761d8897b79967c5e2c951c7ab0c5b
