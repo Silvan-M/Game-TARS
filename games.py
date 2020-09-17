@@ -377,8 +377,8 @@ class space_invader:
             # Important field size variable
 
             # Variables
-            self.lenState = 160
-            self.height = 80
+            self.lenState = 150
+            self.height = 60
             self.state = np.zeros((self.lenState,self.height))
                                         #position[0], position[1] = position[1] , position[0]         
                 # 1 = ship
@@ -445,13 +445,14 @@ class space_invader:
             self.air = np.rot90(self.air)
             self.enemy_leftovers = np.rot90(self.enemy_leftovers)
             #self.oneHotState = [0] * self.lenState * 5
+            # safes action, action[0] = R or L, action[1] = fire True or False
             self.action = ['R',False] # R = move right, L = move Left, True/False = Fire
             self.health = 3
             self.figures = [] # list with all object in the game [object, x_center, y_center]
             self.batch_size = 2
             
             
-            self.figures_set([50,50], 3)
+            self.figures_set([50,50], 1)
             gamma = 0.9
             copy_step = 50
             num_state = len(self.state)
@@ -466,7 +467,7 @@ class space_invader:
             self.variables = [self.state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, self.batch_size, alpha, epsilon, min_epsilon, decay]
 
             # Enable debugging if necessary
-            self.debugging = False
+            self.debugging = True
             
             # space invaders specific rewards
             self.reward_enemy_lvl1_destroyed = 10 # Ship destroys enemy lvl1
@@ -554,7 +555,8 @@ class space_invader:
         def print(self):
             for i in range(len(self.state)):
                 print(self.state[i])
-        def step(self):
+        def step(self, action):
+            self.action = action
             figures = []
             # iterating over x and y values
             for x_value in range(len(self.state)):
@@ -565,6 +567,7 @@ class space_invader:
                                 print('Center found at: '+str(x_value)+','+str(y_value))
                                 print('Marker: '+str(self.state[x_value+1][y_value+1]))
                             # associate object with type [ship, enemy_lvl1,enemy_lvl2, enemy_lvl3, enemy_bullet, ship_bullet, enemy_leftovers]
+                            # saves the location and type in a list
                             figures.append([x_value,y_value,self.state[x_value+1][y_value+1]])
                             if self.debugging:
                                 print(figures)
@@ -572,24 +575,38 @@ class space_invader:
             for i in range(len(figures)):
                 '''if figures[2] == 1:
                     print('data')'''
-                if figures[i][2] == 2:
+                if figures[i][2] == 2: # enemy lvl 1
                     self.figures_set([figures[i][0],figures[i][1]],2)
                     if self.enemy_action(1):
                         self.figures_set([figures[i][0],figures[i][1]+4],6)
-                elif figures[i][2] == 3:
+                elif figures[i][2] == 1: # ship
+                    #self.figures_set([figures[i][0],figures[i][1]],1)
+                    if action[0] == 'L':
+                        self.figures_set([figures[i][0] - 2 ,figures[i][1]],1)
+                        if self.debugging:
+                            print('Ship moved left')
+                    elif action[0] == 'R':
+                        self.figures_set([figures[i][0]+2 ,figures[i][1]],1)
+                        if self.debugging:
+                            print('Ship moved right')
+                    else:
+                        self.figures_set([figures[i][0],figures[i][1]],1)
+                    if action[1] == True:
+                        self.figures_set([figures[i][0],figures[i][1]-4],5)
+
+                elif figures[i][2] == 3: # enemy lvl 2
                     self.figures_set([figures[i][0],figures[i][1]],3)
                     if self.enemy_action(2):
                         self.figures_set([figures[i][0],figures[i][1]+4],6)
-                elif figures[i][2] == 4:
-                    print('mx')
+                elif figures[i][2] == 4: # enemy lvl 3
                     self.figures_set([figures[i][0],figures[i][1]+4],4)
                     if self.enemy_action(3):
                         self.figures_set([figures[i][0],figures[i][1]],6)
 
-
-                if figures[i][2] == 5:
+                # describes projectile movement
+                if figures[i][2] == 5: # ships projectile
                     self.figures_set([figures[i][0],figures[i][1]-1],figures[i][2])
-                elif figures[i][2] == 6:
+                elif figures[i][2] == 6: # enemys projectile
                     self.figures_set([figures[i][0],figures[i][1]+1],figures[i][2])
             self.figures=[]
 

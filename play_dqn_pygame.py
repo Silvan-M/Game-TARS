@@ -646,37 +646,56 @@ class play_dqn_pygame:
 
 
     def spaceInvaderP(self):
+        # when changing dimensions choose values so that all corresponding calculations have integer solutions
+        # if first draw, set variables
         if self.first:
             self.first = False
+            # load data from the game
             self.spaceInvader = g.space_invader()
+            # calculate the field-size
             self.field = [ self.spaceInvader.lenState,self.spaceInvader.height]
+            # calculate ratio
             self.ratio = self.spaceInvader.lenState/self.spaceInvader.height
             self.counter = 0
             self.action = 0
+            # buffer makes game slower
             self.buffer = 0
+            # internal score
             self.score = 0
+            # set width of visualized field
             self.width = 300
+            # calculate the value of the visualized field
             self.dimensions = [int(self.ratio * self.width) , int(self.width) ]
+            print(self.dimensions)
+            print(self.field)
         self.drawSpaceInvader()
 
     def drawSpaceInvader(self):
         self.buffer +=1
+        # empty screen
+        # calculate x and y positioning coordinates and round to integers
+        x_len = self.dimensions[0]/self.field[0] 
+        #x_len = int(x_len) 
+        y_len = self.dimensions[1]/self.field[1] 
+        #y_len = int(y_len)
         self.screen.fill(self.Black)
-        pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2, 250 - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]], 4)
+        # make outer rectangle (white)
+        pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2 - x_len/2, 250 - self.dimensions[1]/2 -y_len/2, self.dimensions[0] + x_len, self.dimensions[1]+ y_len] , 4)
+        # add scoreboard
         self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
-        x_len = self.dimensions[0]/self.field[0]
-        x_len = int(x_len) 
-        y_len = self.dimensions[1]/self.field[1]
-        y_len = int(y_len)
+
+        # iterate over all elements of field
         for x in range (len(self.spaceInvader.state)):
             for y in range(len(self.spaceInvader.state[x])):
-                x_coord = 400 - self.dimensions[0]/2 + x*x_len 
-                y_coord = 250 - self.dimensions[1]/2 + y*y_len
-                if self.spaceInvader.state[x][y] == 0  :
+                if self.spaceInvader.state[x][y] != 0  :
+                    x_coord = 400 - self.dimensions[0]/2 + x*x_len 
+                    y_coord = 250 - self.dimensions[1]/2 + y*y_len 
                     pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len]) 
         if self.buffer % 1 == 0: 
             #print(self.spaceInvader.print())
-            self.spaceInvader.step()
+            # make next step
+            action=['L', False]
+            self.spaceInvader.step(action)
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):
              #   print(self.spaceInvader.state[i])
