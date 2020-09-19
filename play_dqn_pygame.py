@@ -657,11 +657,13 @@ class play_dqn_pygame:
             # calculate ratio
             self.ratio = self.spaceInvader.lenState/self.spaceInvader.height
             self.counter = 0
-            self.action = 0
+            self.action = ['N', False]
             # buffer makes game slower
             self.buffer = 0
+            self.shoot_buffer = 0
             # internal score
-            self.score = 0
+            self.score = self.spaceInvader.score
+            self.health = self.spaceInvader.health
             # set width of visualized field
             self.width = 300
             # calculate the value of the visualized field
@@ -682,20 +684,37 @@ class play_dqn_pygame:
         # make outer rectangle (white)
         pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2 - x_len/2, 250 - self.dimensions[1]/2 -y_len/2, self.dimensions[0] + x_len, self.dimensions[1]+ y_len] , 4)
         # add scoreboard
-        self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
-
+        self.health = self.spaceInvader.health
+        self.addText("Score: "+str(self.score)+'Health'+ str(self.health), self.ailerons, 25, self.White, 400, 25)
         # iterate over all elements of field
         for x in range (len(self.spaceInvader.state)):
             for y in range(len(self.spaceInvader.state[x])):
                 if self.spaceInvader.state[x][y] != 0  :
                     x_coord = 400 - self.dimensions[0]/2 + x*x_len 
                     y_coord = 250 - self.dimensions[1]/2 + y*y_len 
-                    pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len]) 
+                    pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len])
+        keys=pygame.key.get_pressed()
+        self.shoot_buffer += 1
+        self.action = ['N', False]
+        move_ticker = 0
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            if move_ticker == 0:
+                move_ticker = 10
+                self.action = ['L', False]
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            if move_ticker == 0:   
+                move_ticker = 10     
+                self.action = ['R', False]
+        if keys[pygame.K_UP] or keys[pygame.K_w]: 
+            if self.shoot_buffer >= 5:
+                if move_ticker == 0:   
+                    move_ticker = 10   
+                    self.shoot_buffer = 0  
+                    self.action = ['N', True]
         if self.buffer % 1 == 0: 
             #print(self.spaceInvader.print())
             # make next step
-            action=['L', False]
-            self.spaceInvader.step(action)
+            self.spaceInvader.step(self.action)
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):
              #   print(self.spaceInvader.state[i])
