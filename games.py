@@ -495,17 +495,18 @@ class space_invader:
 
         def enemy_create(self): #creates randomly an enemy with random lvl
             ran = random.randint(0,100)
-            if ran < 5:
+            if ran < 10:
+                return(4)
+            elif ran < 50 and ran > 10:
                 return(3)
-            elif ran < 40 and ran < 5:
-                return(2)
             else:
-                return(1)
+                return(2)
         def scoreboard(self,mode, lvl = None):
             if mode == 'de':
                 if self.debugging:
                     print('lvl '+str(lvl)+' score added')
-                self.score[lvl-1] +=1
+                print(lvl-2)
+                self.score[lvl-2] +=1
                 self.score[3] += self.reward_enemy_lvl_destroyed * lvl**2
             elif mode == 'wa':
                 self.score[4] += 1
@@ -642,20 +643,23 @@ class space_invader:
             for i in range(len(self.proj_fig)):
                 if self.proj_fig[i][2] == 5:
                     for y in range(len(self.enemy_fig)):
+                        if self.debugging:
+                            print(str(y+1)+'. enemy checked from'+str(self.enemy_fig))
+                            print(str(i+1)+'. projectile checked from'+str(self.proj_fig))
                         if abs(self.proj_fig[i][0]-self.enemy_fig[y][0]) < 4 and abs(self.proj_fig[i][1]-self.enemy_fig[y][1]) < 4:
                             intercept = True
                         if intercept == True:
+                            print(self.enemy_fig[y])
                             if self.debugging:
                                 print('Enemy ship destroyed ')
                             self.state[self.enemy_fig[y][0]][self.enemy_fig[y][1]] = 0
-                            self.scoreboard( 'de', int(self.enemy_fig[y][2]-1))
-                            print('ship destroyed')
-                            print(self.enemy_fig[y])
-                            print(self.enemy_fig)
-                            self.enemy_fig.pop(y)
-                            print(self.enemy_fig)
+                            if self.enemy_fig[y][2] != 9:
+                                self.scoreboard( 'de', int(self.enemy_fig[y][2]))
+                                #self.enemy_fig.pop(y)
+                            intercept = False
                         elif self.proj_fig[i][2] == 5 and intercept == False: # ships projectile
                             self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]-1],self.proj_fig[i][2])
+                intercept = False
                 if self.proj_fig[i][2] == 6:
                     for y in range(len(self.ship_figures)):
                         if abs(self.proj_fig[i][0]-self.ship_figures[y][0]) < 8 and abs(self.proj_fig[i][1]-self.ship_figures[y][1])< 4:
@@ -666,7 +670,34 @@ class space_invader:
                             self.health -= 1
                         elif self.proj_fig[i][2] == 6 and intercept == False: # enemys projectile
                             self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]+1],self.proj_fig[i][2])
-            self.ship_figuresn = []
+                intercept = False
+            if len(self.enemy_fig) == 0:
+                
+                self.scoreboard('wa')
+                create = []
+                lvl = self.enemy_create()
+                x = random.randint(20,140)
+                y = random.randint(20, 40)
+                self.figures_set([x,y], lvl )
+                create.append([x,y])
+                amount = random.randint(0,30)
+                for i in range(amount):
+                    do = True
+                    lvl = self.enemy_create()
+                    x = random.randint(20,140)
+                    y = random.randint(20, 40)
+                    for c in range(len(create)):
+                        if abs(x - create[c][0]) > 16 or abs(y - create[c][1]) > 16:
+                            do = True
+                        else:
+                            do = False
+                            break
+                    if do:
+                        lvl = self.enemy_create()
+                        self.figures_set([x,y], lvl )
+                        create.append([x,y])
+                create = []      
+            self.ship_figures = []
             self.enemy_fig = []
             self.proj_fig = []
 

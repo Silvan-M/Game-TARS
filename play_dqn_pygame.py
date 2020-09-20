@@ -644,7 +644,6 @@ class play_dqn_pygame:
         self.addButton("AI", 400, 350, 400, 40, self.back)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
 
-
     def spaceInvaderP(self):
         # when changing dimensions choose values so that all corresponding calculations have integer solutions
         # if first draw, set variables
@@ -672,6 +671,14 @@ class play_dqn_pygame:
             print(self.field)
         self.drawSpaceInvader()
 
+    def endSpaceInvader(self):
+        self.first = True
+        self.screen.fill(self.Black)
+        msg = "Score: "+str(self.score[3])
+        self.addText(msg, self.blanka, 100, self.White, 400, 200)
+        self.addButton("Play again", 400, 300, 400, 40, self.previousGame)
+        self.addButton("Menu", 400, 400, 400, 40, self.back)
+
     def drawSpaceInvader(self):
         self.buffer +=1
         # empty screen
@@ -685,7 +692,11 @@ class play_dqn_pygame:
         pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2 - x_len/2, 250 - self.dimensions[1]/2 -y_len/2, self.dimensions[0] + x_len, self.dimensions[1]+ y_len] , 4)
         # add scoreboard
         self.health = self.spaceInvader.health
-        self.addText("Score: "+str(self.score)+'Health'+ str(self.health), self.ailerons, 25, self.White, 400, 25)
+        # check if health is zero and if so go to next screen
+        if self.health <= 0:
+            self.previousGame = self.spaceInvaderP
+            self.currentScreenFunction = self.endSpaceInvader
+            self.endSpaceInvader()
         # iterate over all elements of field
         for x in range (len(self.spaceInvader.state)):
             for y in range(len(self.spaceInvader.state[x])):
@@ -693,6 +704,36 @@ class play_dqn_pygame:
                     x_coord = 400 - self.dimensions[0]/2 + x*x_len 
                     y_coord = 250 - self.dimensions[1]/2 + y*y_len 
                     pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len])
+        # heart symbol
+        for i in range(self.health):
+            pygame.draw.rect(self.screen, self.Teal,[25 + x_len + (i*30) , 430 - y_len, x_len  , y_len])
+            pygame.draw.rect(self.screen, self.Teal,[25 + (x_len *3) + (i*30), 430 - y_len, x_len  , y_len])
+            pygame.draw.rect(self.screen, self.Teal,[25 + (i*30), 430, x_len * 5 , y_len])
+            pygame.draw.rect(self.screen, self.Teal,[25 + x_len+ (i*30) , 430+y_len, x_len * 3 , y_len])  
+            pygame.draw.rect(self.screen, self.Teal,[25  + (x_len*2)+ (i*30) , 430+ (y_len*2), x_len  , y_len])
+        
+        # load images
+        lvl1 = pygame.image.load('resources\lvl1.png')
+        lvl2 = pygame.image.load('resources\lvl2.png')
+        lvl3 = pygame.image.load('resources\lvl3.png')
+        wave = pygame.image.load('resources\wave.png')
+        score = pygame.image.load('resources\score.png')
+        # transform images
+        lvl1 = pygame.transform.scale(lvl1, (int(x_len*15),int( y_len*14)))
+        lvl2 = pygame.transform.scale(lvl2, (int(x_len*15),int( y_len*13)))
+        lvl3 = pygame.transform.scale(lvl3, (int(x_len*15),int( y_len*14)))
+        wave = pygame.transform.scale(wave, (int(x_len*8),int( y_len*6))) 
+        score = pygame.transform.scale(score, (int(x_len*15),int( y_len*14))) 
+        self.screen.blit(lvl1, (150, 400))
+        self.screen.blit(lvl2, (250, 400))
+        self.screen.blit(lvl3, (350, 400))
+        self.screen.blit(wave, (450, 418))
+        self.screen.blit(score, (550, 410))
+        self.addText(str(self.score[0]), self.ailerons, 25, self.White, 220, 435)
+        self.addText(str(self.score[1]), self.ailerons, 25, self.White, 320, 435)
+        self.addText(str(self.score[2]), self.ailerons, 25, self.White, 420, 435)
+        self.addText(str(self.score[4]), self.ailerons, 25, self.White, 520, 435)
+        self.addText(str(self.score[3]), self.ailerons, 25, self.White, 670, 435)
         keys=pygame.key.get_pressed()
         self.shoot_buffer += 1
         self.action = ['N', False]
