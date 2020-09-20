@@ -704,7 +704,7 @@ class play_dqn_pygame:
                     x_coord = 400 - self.dimensions[0]/2 + x*x_len 
                     y_coord = 250 - self.dimensions[1]/2 + y*y_len 
                     pygame.draw.rect(self.screen, self.Teal,[x_coord , y_coord , x_len , y_len])
-        # heart symbol
+        # hearts symbol
         for i in range(self.health):
             pygame.draw.rect(self.screen, self.Teal,[25 + x_len + (i*30) , 430 - y_len, x_len  , y_len])
             pygame.draw.rect(self.screen, self.Teal,[25 + (x_len *3) + (i*30), 430 - y_len, x_len  , y_len])
@@ -724,6 +724,7 @@ class play_dqn_pygame:
         lvl3 = pygame.transform.scale(lvl3, (int(x_len*15),int( y_len*14)))
         wave = pygame.transform.scale(wave, (int(x_len*8),int( y_len*6))) 
         score = pygame.transform.scale(score, (int(x_len*15),int( y_len*14))) 
+        # set images to specific position
         self.screen.blit(lvl1, (150, 400))
         self.screen.blit(lvl2, (250, 400))
         self.screen.blit(lvl3, (350, 400))
@@ -734,10 +735,12 @@ class play_dqn_pygame:
         self.addText(str(self.score[2]), self.ailerons, 25, self.White, 420, 435)
         self.addText(str(self.score[4]), self.ailerons, 25, self.White, 520, 435)
         self.addText(str(self.score[3]), self.ailerons, 25, self.White, 670, 435)
+        # saves the keypresses in keys
         keys=pygame.key.get_pressed()
         self.shoot_buffer += 1
         self.action = ['N', False]
         move_ticker = 0
+        # allocates certain functions to keys
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             if move_ticker == 0:
                 move_ticker = 10
