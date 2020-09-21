@@ -446,13 +446,16 @@ class space_invader:
             self.enemy_leftovers = np.rot90(self.enemy_leftovers)
             #self.oneHotState = [0] * self.lenState * 5
             # safes action, action[0] = R or L, action[1] = fire True or False
-            self.action = ['R',False] # R = move right, L = move Left, True/False = Fire
+            self.action = ['N',False] # R = move right, L = move Left, True/False = Fire
             self.health = 3
             self.figures = [] # list with all object in the game [object, x_center, y_center]
             self.batch_size = 2
             
-            
-            self.figures_set([50,50], 1)
+            # first round
+            self.figures_set([65,55], 1)
+            self.figures_set([30,20], 2)
+            self.figures_set([45,20], 3)#12345
+            self.figures_set([60,40], 4)
             gamma = 0.9
             copy_step = 50
             num_state = len(self.state)
@@ -466,16 +469,15 @@ class space_invader:
             decay = 0.99
             self.variables = [self.state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, self.batch_size, alpha, epsilon, min_epsilon, decay]
 
-            # Enable debugging if necessary
-            self.debugging = True
+            # Enable debugging if necessary 
+            self.debugging = False
             
             # space invaders specific rewards
-            self.reward_enemy_lvl1_destroyed = 10 # Ship destroys enemy lvl1
-            self.reward_enemy_lvl2_destroyed = 100 # Ship destroys enemy lvl2
-            self.reward_enemy_lvl3_destroyed = 300 # Ship destroys enemy lvl3
+            self.reward_enemy_lvl_destroyed = 100 # Ship destroys enemy 
             self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
             self.reward_ship_hit = -500 # Ship loses one life
             self.reward_ship_destroyed = -1000 # Ship gets destroyed
+            self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         #States:
             # 0 = air
             # 1 = ship
@@ -485,49 +487,76 @@ class space_invader:
             # 5 = ship_bullet
             # 6 = enemy_bullet
 
+            # calculates if an enemy shoots or not depending on the level
         def enemy_action(self,lvl):
-            if lvl*2 > random.randint(0,50): #Chance of firing increases per lvl 
+            if lvl*2 > random.randint(0,150): #Chance of firing increases per lvl 
                 return(True) #fire
             else:
                 return(False) #not fire
 
+            # creates enemy , highter lvl more unlikely to create
         def enemy_create(self): #creates randomly an enemy with random lvl
             ran = random.randint(0,100)
-            if ran < 5:
+            if ran < 10:
+                return(4)
+            elif ran < 50 and ran > 10:
                 return(3)
-            elif ran < 40 and ran < 5:
-                return(2)
             else:
-                return(1)
+                return(2)
+            # keeps track of all destroyed enemies and scores
+            # score[0] = enemy lvl1 killed , 
+            # score[1] = enemy lvl2 killed , 
+            # score[2] = enemy lvl3 killed ,
+            # score[3] = total score       ,  
+            # score[4] = wave completed    , 
+        def scoreboard(self,mode, lvl = None):
+            if mode == 'de':
+                if self.debugging:
+                    print('lvl '+str(lvl)+' score added')
+                print(lvl-2)
+                self.score[lvl-2] +=1
+                self.score[3] += self.reward_enemy_lvl_destroyed * lvl**2
+            elif mode == 'wa':
+                self.score[4] += 1
+            else:
+                return(self.score)
+             
+        
+
         def figures_set (self,position,figure):
 
-            # checks if the potential figure can be placed in the foreseen region, checked in every direction, dimension are [15,7]¨
+            # checks if the potential figure can be placed in the foreseen region, checked in every direction, dimension are [15,7]
             # ifso returns True, else False
             try:
+                if not (position[0] + 7 < self.lenState) and (position[0] -7) > 0 and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
+                    return(False)
                 if figure == 1 and (position[0] + 7 < self.lenState) and (position[0] -7) > 0 and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.ship
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.ship
                     return(True)
                 elif figure == 2 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl1
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.enemy_lvl1
                     return(True)
                 elif figure == 3 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl2
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.enemy_lvl2
                     return(True)
                 elif figure == 4 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_lvl3
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.enemy_lvl3
                     return(True)
                 elif figure == 7 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.enemy_leftovers
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.enemy_leftovers
                     return(True)
                 elif figure == 0 and (position[0] + 7 < self.lenState) and (position[0] -7 > 0)  and (position[1] - 4 > 0) and (position[1] + 4 < self.height): 
-                    self.state[ position[1]-7:position[1]+8,position[0]-3: position[0]+ 4] = self.air
+                    self.state[ position[0]-7:position[0]+8,position[1]-3: position[1]+ 4] = self.air
                     return(True)
                 #bullets
                 elif figure == 5 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
                     self.state[position[0]][position[1]] = self.c
-                    self.state[position[0]-1][position[1]] = 5
-                    self.state[position[0]-1][position[1]-1] = 5
+                    #self.state[position[0]-1][position[1]] = 5
+                    #self.state[position[0]-1][position[1]-1] = 5
+                    #self.state[position[0]-1][position[1]+1] = 5
+                    #self.state[position[0]+1][position[1]] = 5
                     self.state[position[0]-1][position[1]+1] = 5
+                    self.state[position[0]+1][position[1]+1] = 5
                     return(True)
 
                 elif figure == 6 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
@@ -535,7 +564,9 @@ class space_invader:
                     self.state[position[0]+1][position[1]] = 6
                     self.state[position[0]+1][position[1]-1] = 6
                     self.state[position[0]+1][position[1]+1] = 6
-                
+                    self.state[position[0]-1][position[1]] = 6
+                    self.state[position[0]-1][position[1]-1] = 6
+                    self.state[position[0]-1][position[1]+1] = 6
                     return(True)
                 elif figure == 8 and (position[0] + 1 < self.lenState) and (position[0] -1 > 0)  and (position[1] -1 > 0) and (position[1] +1 < self.height):  
                     self.state[position[0]][position[1]] = 0
@@ -549,15 +580,23 @@ class space_invader:
                 else:
                     return(False)
             except IndexError:
+                print('index error')
                 return(False)
+
+            # resets self.state
         def reset(self):
             self.state = np.zeros((self.lenState,self.height))
         def print(self):
             for i in range(len(self.state)):
                 print(self.state[i])
+            # makes one step
+            # checks every discrete space for movement (projectile, ship) and intersections 
         def step(self, action):
             self.action = action
-            figures = []
+            # splitting figures into 3 categories to avoid unnecessary loops
+            self.ship_figures = [] # ship, enemies, projectiles
+            self.enemy_fig = []
+            self.proj_fig = []
             # iterating over x and y values
             for x_value in range(len(self.state)):
                 for y_value in range(len(self.state[x_value])): #only applicable with object that move upwards or right to left
@@ -568,47 +607,133 @@ class space_invader:
                                 print('Marker: '+str(self.state[x_value+1][y_value+1]))
                             # associate object with type [ship, enemy_lvl1,enemy_lvl2, enemy_lvl3, enemy_bullet, ship_bullet, enemy_leftovers]
                             # saves the location and type in a list
-                            figures.append([x_value,y_value,self.state[x_value+1][y_value+1]])
+                            if self.state[x_value+1][y_value+1] == 1:
+                                self.ship_figures.append([x_value,y_value,self.state[x_value+1][y_value+1]])
+                            elif self.state[x_value+1][y_value+1] == 5 or self.state[x_value+1][y_value+1] == 6:
+                                self.proj_fig.append([x_value,y_value,self.state[x_value+1][y_value+1]])
+                            else:
+                                self.enemy_fig.append([x_value,y_value,self.state[x_value+1][y_value+1]])
                             if self.debugging:
-                                print(figures)
+                                print( [['ship', self.ship_figures],['enemy', self.enemy_fig],['projectile', self.proj_fig]])
+            # self.state gets reset, information stored in the figures list
             self.reset()
-            for i in range(len(figures)):
-                '''if figures[2] == 1:
-                    print('data')'''
-                if figures[i][2] == 2: # enemy lvl 1
-                    self.figures_set([figures[i][0],figures[i][1]],2)
+            # looks for movement 
+            if self.ship_figures[0][2] == 1: # ship
+                #self.figures_set([figures[i][0],figures[i][1]],1)
+                if action[0] == 'L': # if left key is pressed
+                    # checks if its possible to move the ship in this direction
+                    if self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1) == False:
+                        self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
+                    else: # if its possible, move
+                        self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1)
+                    if self.debugging:
+                        print('Ship moved left')
+                elif action[0] == 'R': # if right key is pressed
+                    # checks if its possible to move the ship in this direction
+                    if self.figures_set([self.ship_figures[0][0] + 2 ,self.ship_figures[0][1]],1) == False:
+                        self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
+                    else: # if its possible, move
+                        self.figures_set([self.ship_figures[0][0]+2 ,self.ship_figures[0][1]],1)
+                    if self.debugging:
+                        print('Ship moved right')
+                else: # if no movement key is pressed , no movement, only situation where ship can fire
+                    self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]],1)
+                if action[1] == True: # if up key is pressed, fire
+                    self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]-5],5)
+            # describes enemy behaviour, uses enemy_action to determine if they fire or not    
+            for i in range(len(self.enemy_fig)):
+                if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],2)
                     if self.enemy_action(1):
-                        self.figures_set([figures[i][0],figures[i][1]+4],6)
-                elif figures[i][2] == 1: # ship
-                    #self.figures_set([figures[i][0],figures[i][1]],1)
-                    if action[0] == 'L':
-                        self.figures_set([figures[i][0] - 2 ,figures[i][1]],1)
-                        if self.debugging:
-                            print('Ship moved left')
-                    elif action[0] == 'R':
-                        self.figures_set([figures[i][0]+2 ,figures[i][1]],1)
-                        if self.debugging:
-                            print('Ship moved right')
-                    else:
-                        self.figures_set([figures[i][0],figures[i][1]],1)
-                    if action[1] == True:
-                        self.figures_set([figures[i][0],figures[i][1]-4],5)
-
-                elif figures[i][2] == 3: # enemy lvl 2
-                    self.figures_set([figures[i][0],figures[i][1]],3)
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
+                elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],3)
                     if self.enemy_action(2):
-                        self.figures_set([figures[i][0],figures[i][1]+4],6)
-                elif figures[i][2] == 4: # enemy lvl 3
-                    self.figures_set([figures[i][0],figures[i][1]+4],4)
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
+                elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],4)
                     if self.enemy_action(3):
-                        self.figures_set([figures[i][0],figures[i][1]],6)
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
 
-                # describes projectile movement
-                if figures[i][2] == 5: # ships projectile
-                    self.figures_set([figures[i][0],figures[i][1]-1],figures[i][2])
-                elif figures[i][2] == 6: # enemys projectile
-                    self.figures_set([figures[i][0],figures[i][1]+1],figures[i][2])
-            self.figures=[]
+            # describes projectile movement
+            intercept = False
+            for i in range(len(self.proj_fig)): # checks all projectiles
+                if self.proj_fig[i][2] == 5: # if ships projectile
+                    for y in range(len(self.enemy_fig)): # looks if it intersects with one of the enemies
+                        if self.debugging:
+                            print(str(y+1)+'. enemy checked from'+str(self.enemy_fig))
+                            print(str(i+1)+'. projectile checked from'+str(self.proj_fig))
+                            # checks intersection
+                        if abs(self.proj_fig[i][0]-self.enemy_fig[y][0]) < 4 and abs(self.proj_fig[i][1]-self.enemy_fig[y][1]) < 4:
+                            intercept = True
+                        if intercept == True:
+                            print(self.enemy_fig[y])
+                            if self.debugging:
+                                print('Enemy ship destroyed ')
+                            # enemy deleted
+                            self.state[self.enemy_fig[y][0]][self.enemy_fig[y][1]] = 0
+                            if self.enemy_fig[y][2] != 9: # checks if no centerpiece
+                                # adds according score to the scoreboard
+                                self.scoreboard( 'de', int(self.enemy_fig[y][2]))
+                                #self.enemy_fig.pop(y)
+                            intercept = False
+                        elif self.proj_fig[i][2] == 5 and intercept == False: # ships projectile
+                            # if no intercept move normally
+                            self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]-1],self.proj_fig[i][2])
+                intercept = False
+                if self.proj_fig[i][2] == 6: # checks if its an enemy projectile
+                    for y in range(len(self.ship_figures)):
+                        # looks for intersection with ship
+                        if abs(self.proj_fig[i][0]-self.ship_figures[y][0]) < 8 and abs(self.proj_fig[i][1]-self.ship_figures[y][1])< 4:
+                            intercept = True
+                        if intercept == True:
+                            if self.debugging:
+                                print('Ship destroyed ')
+                            # if intersected lose one healthpoint
+                            self.health -= 1
+                        elif self.proj_fig[i][2] == 6 and intercept == False: # enemys projectile
+                            # if no intercept move normally 
+                            self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]+1],self.proj_fig[i][2])
+                intercept = False
+                # if no enemies are on the field
+            if len(self.enemy_fig) == 0:
+                # add points for completing the wave
+                self.scoreboard('wa') 
+                # makes list to check
+                create = []
+                # make random lvl
+                lvl = self.enemy_create()
+                # make random position
+                x = random.randint(20,140)
+                y = random.randint(20, 40)
+                # create
+                self.figures_set([x,y], lvl )
+                create.append([x,y])
+                # make random amount of enemies
+                amount = random.randint(0,30)
+                for i in range(amount):
+                    do = True
+                    # makes random enemy with random position
+                    lvl = self.enemy_create()
+                    x = random.randint(20,140)
+                    y = random.randint(20, 40)
+                    # checks if generated enemy does not intersect with any other enemy previously created
+                    for c in range(len(create)):
+                        if abs(x - create[c][0]) > 16 or abs(y - create[c][1]) > 16:
+                            do = True
+                        else:
+                            do = False
+                            break
+                    if do:
+                        # if no intersection, create
+                        lvl = self.enemy_create()
+                        self.figures_set([x,y], lvl )
+                        create.append([x,y])
+                create = []      
+            self.ship_figures = []
+            self.enemy_fig = []
+            self.proj_fig = []
+
 
 
 
