@@ -617,7 +617,7 @@ class space_invader:
 class snake:
     def __init__(self):
         self.illegalcount = 0
-        self.mode = 1 # Mode 0: 12 inputs, see below; Mode 1: input the complete field
+        self.mode = 2 # Mode 0: 12 inputs, see below; Mode 1: input the complete field; Mode 2: Snake head centered
 
         # Important field size variable
         self.field_size = 10 # field_size x field_size snake grid
@@ -629,6 +629,11 @@ class snake:
         elif self.mode == 1:
             self.state = [0]*((self.field_size**2)*2)
             self.batch_size = 2
+        elif self.mode == 2:
+            outPutFieldSize = (self.field_size//2)*2-1
+            self.state = [0]*((outPutFieldSize**2)*2)
+            self.batch_size = 1
+
         gamma = 0.9
         copy_step = 50
         num_state = len(self.state)
@@ -658,6 +663,7 @@ class snake:
         self.reward_death = -100 # Snake dies (runs into wall or itself)
         self.reward_opposite_dir = -15 # Snake tries to go in opposite direction it's heading (not possible in snake)
         self.reward_repetitive = -15 # If the snake ends up in the exact same situation as in the last 6 steps
+        self.reward_enclosing = -50 # If the snake encloses itself or is in the state of being enclosed
 
         self.updateFieldVariable()
 
@@ -730,6 +736,77 @@ class snake:
         # Create snake
         for i in self.snake:
             self.field[i] = 1
+
+    # def isEnclosedCheck(self):
+    #     '''isEnclosedCheck function checks if the snake is currently enclosed and returns it as a boolean.'''
+    #     # To save resources only check wether the snake is enclosed if it is close to a object
+    #     if self.snakeIsSurrounded:
+    #         listOf
+    #         for i in self.snake:
+
+    #     else:
+    #         return False
+
+    def snakeIsSurrounded(self):
+        '''snakeIsSurrounded checks if the snake is surrounded by a block or not'''
+        isSurrounded = False
+        for i in range(0,4):
+            if self.getIndexOfAction(i) == -1:
+                isSurrounded = True
+        return isSurrounded
+
+    def getEnclosedSurfacesOfSnake(self):
+        field = np.array(self.field).reshape(self.field_size,self.field_size)
+        for i in enumerate(self.snake):
+            index = [i//self.field_size, i%self.field_size] # Convert index from field_size**2 linear to field_size x field_size matrix index
+            
+ 
+    def checkObjectInAllFourDirections(self, index):
+        lenField = len(self.field)
+        listOfObjects = []
+        # Check in +x direction
+        x = index+1
+        while x < lenField or x % (self.field_size-1) != 0:
+            if self.field[x] != 1:
+                if x not in listOfObjects:
+                    listOfObjects.append(x)
+                x += 1
+            else:
+                break
+        
+        # Check in -x direction
+        x = index-1
+        while x % (self.field_size) != 0:
+            if self.field[x] != 1:
+                if x not in listOfObjects:
+                    listOfObjects.append(x)
+                x -= 1
+            else:
+                break
+        
+        # Check in +y direction
+        y = index+self.field_size
+        while y < lenField or y < self.field_size*(self.field_size-1) != 0:
+            if self.field[y] != 1:
+                if y not in listOfObjects:
+                    listOfObjects.append(x)
+                y += self.field_size
+            else:
+                break
+
+        # Check in -y direction
+        y = index-self.field_size
+        while y > self.field_size:
+            if self.field[y] != 1:
+                if y not in listOfObjects:
+                    listOfObjects.append(x)
+                y -= self.field_size
+            else:
+                break
+
+        return listOfObjects
+            
+
 
     def gotCloserCheck(self, action):
         # Check where the apple currently is
@@ -846,6 +923,51 @@ class snake:
                 fieldSnake[i] = 1
             fieldApple[self.apple] = 1
             return fieldSnake+fieldApple
+        elif self.mode == 2:
+            fieldSnake = [0]*(self.field_size**2)
+            fieldApple = [0]*(self.field_size**2)
+            for i in self.snake:
+                fieldSnake[i] = 1
+            fieldApple[self.apple] = 1
+            return self.centerSnakeHead(fieldSnake, 1)+self.centerSnakeHead(fieldApple, 0)
+
+    def centerSnakeHead(self, field, fillingVar):
+        snakeHead = self.snake[-1]
+        headInRow = snakeHead//self.field_size
+        headInColumn = snakeHead-(headInRow*self.field_size)
+
+        newField = field
+
+        middle = self.field_size//2
+        paddingLeft = -(headInRow-middle)
+        paddingTop = -(headInColumn-middle)
+
+        newField = np.array(newField).reshape(self.field_size,self.field_size)
+        newField = np.roll(newField,paddingTop,axis=1)
+        newField = np.roll(newField,paddingLeft,axis=0)
+
+        stepLeft = 1
+        beginLeft = 0
+        stepTop = 1
+        beginTop = 0
+        if paddingLeft < 0:
+            stepLeft = -1
+            beginLeft = -1
+        if paddingTop < 0:
+            stepTop = -1
+            beginTop = -1
+
+        for i in range(beginLeft,paddingLeft,stepLeft):
+            newField[i,:] = fillingVar
+        
+        for i in range(beginTop,paddingTop,stepTop):
+            newField[:,i] = fillingVar
+        
+        newField = np.delete(newField,0,0)
+        newField = np.delete(newField,0,1)
+        
+        newField = np.array(newField).reshape((middle*2-1)**2)
+        return newField.tolist()
 
 if __name__ == '__main__':
     # This code block will only run if you directly run games.py

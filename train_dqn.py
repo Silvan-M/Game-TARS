@@ -168,7 +168,7 @@ class train_dqn():
         # Define model name
         model_name = ""
         # Alternatively define relative model path
-        model_path = "snake\models\model.2020.09.05-20.15.07-I.10-N.20000"
+        model_path = ""
         
         if model_name != "" or model_path != "":
             if model_path == "":
