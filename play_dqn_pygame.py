@@ -713,11 +713,11 @@ class play_dqn_pygame:
             pygame.draw.rect(self.screen, self.Teal,[25  + (x_len*2)+ (i*30) , 430+ (y_len*2), x_len  , y_len])
         
         # load images
-        lvl1 = pygame.image.load('resources\lvl1.png')
-        lvl2 = pygame.image.load('resources\lvl2.png')
-        lvl3 = pygame.image.load('resources\lvl3.png')
-        wave = pygame.image.load('resources\wave.png')
-        score = pygame.image.load('resources\score.png')
+        lvl1 = pygame.image.load('resources/lvl1.png')
+        lvl2 = pygame.image.load('resources/lvl2.png')
+        lvl3 = pygame.image.load('resources/lvl3.png')
+        wave = pygame.image.load('resources/wave.png')
+        score = pygame.image.load('resources/score.png')
         # transform images
         lvl1 = pygame.transform.scale(lvl1, (int(x_len*15),int( y_len*14)))
         lvl2 = pygame.transform.scale(lvl2, (int(x_len*15),int( y_len*13)))
