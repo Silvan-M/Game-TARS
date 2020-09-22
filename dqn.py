@@ -68,7 +68,7 @@ class DQN:
         dones = np.asarray([self.experience['done'][i] for i in ids])
         value_next = np.max(TargetNet.predict(states_next), axis=1) # returns the max value of TargetNet achieved by the action
         # TargetNet = a preserved copy of the dqn which the weights get updated after a specific amount of time, is used to calculate the favorability of the action taken
-        actual_values = np.where(dones, rewards, rewards+self.gamma*value_next) # replaces the reward values of a successfull action with values which take the favorability of future states into account multiplied by the discount factor.
+        actual_values = np.where(dones, rewards, rewards+self.gamma*value_next) # replaces the reward values of a successful action with values which take the favorability of future states into account multiplied by the discount factor.
 
         with tf.GradientTape() as tape: # record operation for automatic differentiation 
             selected_action_values = tf.math.reduce_sum( # returns the reduced tensor along the x-axis by adding the rows together
