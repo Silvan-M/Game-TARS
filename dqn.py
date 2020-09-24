@@ -77,8 +77,8 @@ class DQN:
                 # one hot encoding = convertion of enumerated categories to a binary matrix which stores the range of actions
             loss = tf.math.reduce_mean(tf.square(actual_values - selected_action_values)) # calculates the squared difference between actual values and selected action values 
         variables = self.model.trainable_variables # calls the weights of the model 
-        gradients = tape.gradient(loss, variables) # we dont know
-        self.optimizer.apply_gradients(zip(gradients, variables)) #we dont know
+        gradients = tape.gradient(loss, variables) # Applying the changes mad in the gradient tape and therefore giving tf the possibility to see what has been calculated
+        self.optimizer.apply_gradients(zip(gradients, variables)) # In eager mode, simply call minimize to update the list of variables.
         return loss
 
     def get_action(self, states, epsilon):
