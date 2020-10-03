@@ -2,6 +2,7 @@ import random
 import time
 import min_max_alg as mma
 import numpy as np
+import floodfill as flood
 
 class tictactoe:
     def __init__(self):
@@ -789,6 +790,8 @@ class snake:
         self.reward_opposite_dir = -15 # Snake tries to go in opposite direction it's heading (not possible in snake)
         self.reward_repetitive = -15 # If the snake ends up in the exact same situation as in the last 6 steps
         self.reward_enclosing = -50 # If the snake encloses itself or is in the state of being enclosed
+        self.enclosing_percentage = 0.30 # The maximal percentage of the field the snake has to be in for the enclosing reward to take effect
+        self.enclosing_topoff = self.field_size**2*0.60 # The score after which no enclosing penalty will be given
 
         self.updateFieldVariable()
 
@@ -808,35 +811,33 @@ class snake:
     def step(self, action):
         # Evaluate action, detect if it hits the wall or itself
         index = self.getIndexOfAction(action)
-        opposite = False
+        reward = 0
 
         # If snake hits wall or itself give negative reward
         if index == -1:
             # Check if snake wants to go in opposite direction it's heading
             if (self.prevAction == 0 and action == 2) or (self.prevAction == 2 and action == 0) or (self.prevAction == 1 and action == 3) or (self.prevAction == 3 and action == 1):
                 reward = self.reward_opposite_dir
-                opposite = True
                 index = self.getIndexOfAction(self.prevAction)
                 if index == -1:
                     return True, self.reward_death, self.getState(action)
             else:
                 return True, self.reward_death, self.getState(action)
 
-        # Initialize reward for later manipulation
-        if not opposite:
-            reward = 0
+
+        reward += self.getEnclosedPenalty(action)
 
         # Snake has eaten an apple
         if index == self.apple:
             self.snake.append(index)
             while self.apple in self.snake:
                 self.apple = random.randint(0, self.field_size**2-1)
-            reward = self.reward_apple
+            reward += self.reward_apple
         else:
             if self.gotCloserCheck(action):
-                reward = self.reward_closer
+                reward += self.reward_closer
             else:
-                reward = self.reward_further
+                reward += self.reward_further
             self.snake.append(index)
             self.snake.pop(0)
         
@@ -847,8 +848,8 @@ class snake:
 
         self.addMemory()
 
-        if not opposite:
-            self.prevAction = action
+        
+        self.prevAction = action
         return False, reward, self.getState(action)
 
     def updateFieldVariable(self):
@@ -880,58 +881,29 @@ class snake:
                 isSurrounded = True
         return isSurrounded
 
-    def getEnclosedSurfacesOfSnake(self):
-        field = np.array(self.field).reshape(self.field_size,self.field_size)
-        for i in enumerate(self.snake):
-            index = [i//self.field_size, i%self.field_size] # Convert index from field_size**2 linear to field_size x field_size matrix index
-            
- 
-    def checkObjectInAllFourDirections(self, index):
-        lenField = len(self.field)
-        listOfObjects = []
-        # Check in +x direction
-        x = index+1
-        while x < lenField or x % (self.field_size-1) != 0:
-            if self.field[x] != 1:
-                if x not in listOfObjects:
-                    listOfObjects.append(x)
-                x += 1
+    def getEnclosedPenalty(self, action):
+        '''getEnclosedPenalty returns reward_enclosing if the snake is about to enclose itself'''
+        if len(self.snake) < self.enclosing_topoff:
+            index = self.getIndexOfAction(action)
+            A = self.getSurface(index)
+            Atot = self.field_size**2
+            if A <= Atot*self.enclosing_percentage:
+                return self.reward_enclosing
             else:
-                break
-        
-        # Check in -x direction
-        x = index-1
-        while x % (self.field_size) != 0:
-            if self.field[x] != 1:
-                if x not in listOfObjects:
-                    listOfObjects.append(x)
-                x -= 1
-            else:
-                break
-        
-        # Check in +y direction
-        y = index+self.field_size
-        while y < lenField or y < self.field_size*(self.field_size-1) != 0:
-            if self.field[y] != 1:
-                if y not in listOfObjects:
-                    listOfObjects.append(x)
-                y += self.field_size
-            else:
-                break
+                return 0
+        else:
+            return 0
 
-        # Check in -y direction
-        y = index-self.field_size
-        while y > self.field_size:
-            if self.field[y] != 1:
-                if y not in listOfObjects:
-                    listOfObjects.append(x)
-                y -= self.field_size
-            else:
-                break
-
-        return listOfObjects
-            
-
+    def getSurface(self, index):
+        '''getSurface returns empty space of index'''
+        if self.field[index] == 0:
+            field = np.array(self.field).reshape(self.field_size,self.field_size)
+            indexConverted = (index//self.field_size, index%self.field_size)
+            field[self.apple//self.field_size][self.apple%self.field_size] = 0
+            flood.fill(field, indexConverted, -1)
+            return np.count_nonzero(field == -1)
+        else:
+            return self.field_size**2
 
     def gotCloserCheck(self, action):
         # Check where the apple currently is
