@@ -788,7 +788,8 @@ class snake:
         self.reward_further = -15 # Snake gets further away from the apple
         self.reward_death = -100 # Snake dies (runs into wall or itself)
         self.reward_opposite_dir = -15 # Snake tries to go in opposite direction it's heading (not possible in snake)
-        self.reward_repetitive = -15 # If the snake ends up in the exact same situation as in the last 6 steps
+        self.reward_opposite_dir_topoff = self.field_size**2*0.40 # The score after which no opposite direction penalty will be given
+        self.reward_repetitive = -50 # If the snake ends up in the exact same situation as in the last 6 steps
         self.reward_enclosing = -50 # If the snake encloses itself or is in the state of being enclosed
         self.enclosing_percentage = 0.30 # The maximal percentage of the field the snake has to be in for the enclosing reward to take effect
         self.enclosing_topoff = self.field_size**2*0.60 # The score after which no enclosing penalty will be given
@@ -817,7 +818,8 @@ class snake:
         if index == -1:
             # Check if snake wants to go in opposite direction it's heading
             if (self.prevAction == 0 and action == 2) or (self.prevAction == 2 and action == 0) or (self.prevAction == 1 and action == 3) or (self.prevAction == 3 and action == 1):
-                reward = self.reward_opposite_dir
+                if self.reward_opposite_dir_topoff < len(self.snake):
+                    reward = self.reward_opposite_dir
                 index = self.getIndexOfAction(self.prevAction)
                 if index == -1:
                     return True, self.reward_death, self.getState(action)

@@ -166,15 +166,15 @@ class train_dqn():
 
         # LOADING MODELS - Set one of the variables if you want to load a model
         # Define model name
-        model_name = ""
+        model_name = "model.2020.10.03-23.05.17-I.10-N.25000"
         # Alternatively define relative model path
         model_path = ""
         
         if model_name != "" or model_path != "":
             if model_path == "":
-                model_path = game[2]+model_name
-            self.TrainNet.model = tf.saved_model.load(model_path+"/TrainNet/")
-            self.TargetNet.model = tf.saved_model.load(model_path+"/TargetNet/")
+                model_path = game[2]+"/models/"+model_name
+            self.TrainNet.model = tf.saved_model.load(model_path+"/TrainNet")
+            self.TargetNet.model = tf.saved_model.load(model_path+"/TargetNet")
             
 
         N = int(input("How many episodes do you want to train?\n"))
