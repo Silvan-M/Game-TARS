@@ -167,6 +167,7 @@ class play_dqn_pygame:
         return -1
 
     def highlightSquare(self, field):
+        # Gets mouse input
         mouse = pygame.mouse.get_pos()
         touchcoords = ((175,325),(100,250)),((325,475),(100,250)),((475,625),(100,250)),((175,325),(250,400)),((325,475),(250,400)),((475,625),(250,400)),((175,325),(400,550)),((325,475),(400,550)),((475,625),(400,550)) # Coordinate Buttons: ((leftmost x, rightmost, x),(upmost y, downmost y))
         pygame.draw.rect(self.screen, self.TealFaded, (touchcoords[field][0][0],touchcoords[field][1][0],150,150), 0)
