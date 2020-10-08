@@ -828,7 +828,7 @@ class play_dqn_pygame:
         #models = ['1','2','3','4','5']
         MatModel = []
         for i, v in enumerate(models):
-            if v != ".DS_Store":
+            if v != ".DS_Store" and v != ".keep":
                 MatModel.append([v,None])
         MatModel = sorted(MatModel, reverse=True)
         return(self.scrollBar(0,MatModel, 'x'))

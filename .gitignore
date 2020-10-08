@@ -1,5 +1,35 @@
+# remove IDE generated files
 .DS_Store
 __pycache__/
 .vscode/
-tictactoe/
-snake/
+
+
+# exclude everything
+tictactoe/figures/*
+snake/figures/*
+spaceinvader/figures/*
+
+tictactoe/logs/*
+snake/logs/*
+spaceinvader/logs/*
+
+tictactoe/models/*
+snake/models/*
+spaceinvader/models/*
+
+# exception to the rule 
+!tictactoe/figures/.keep
+!snake/figures/.keep
+!spaceinvader/figures/.keep
+
+!tictactoe/logs/.keep
+!snake/logs/.keep
+!spaceinvader/logs/.keep
+
+!tictactoe/models/.keep
+!snake/models/.keep
+!spaceinvader/models/.keep
+
+!tictactoe/models/0_PretrainedModel
+!snake/models/0_PretrainedModel
+!spaceinvader/models/0_PretrainedModel
