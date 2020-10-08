@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 0
+verbose = 1
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -140,10 +140,9 @@ class train_dqn():
                 print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
         return rewards, mean(losses), apples #returns rewards and average
     
-    def play_space_invader(self, state, environment, epsilon, copy_step):
-        environment.reset()
+    def play_space_invader(self, state, _, epsilon, copy_step):
+        environment = g.space_invader()
         rewards = 0
-        apples = 0
         iter = 0
         done = False
         observations = state
@@ -167,9 +166,8 @@ class train_dqn():
                 convAction = ['N', True]
 
             prev_observations = observations # saves observations
-            reward, observations =  environment.step(convAction)
+            reward, observations = environment.step(convAction)
             
-            done = False
             if environment.health <= 0:
                 done = True
                 reward = environment.reward_ship_destroyed
@@ -188,14 +186,14 @@ class train_dqn():
 
             if verbose == 1:
                 if done:
-                    print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+                    print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 2:
-                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 3:
                 for row in range(0, environment.field_size):
                     print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
-                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
-        return rewards, mean(losses), environment.score #returns rewards and average
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}\n".format(rewards,str(environment.score[3]),str(done)))
+        return rewards, mean(losses), environment.score[3] #returns rewards and average
 
             
     def main(self, testing):
@@ -204,7 +202,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvader":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["spaceinvader"]
+        game = games["spaceinvaders"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables

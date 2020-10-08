@@ -26,7 +26,7 @@ class tictactoe:
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
 
         # Enable debugging if necessary
-        self.debugging = True
+        self.debugging = False
         
         # TicTacToe rewards
         self.reward_tie = 5000
@@ -448,7 +448,7 @@ class space_invader:
         self.action = ['N',False] # R = move right, L = move Left, True/False = Fire
         self.health = 3
         self.figures = [] # list with all object in the game [object, x_center, y_center]
-        self.batch_size = 2
+        self.batch_size = 1
         
         # first round
         self.figures_set([65,55], 1)
@@ -514,7 +514,7 @@ class space_invader:
         if mode == 'de':
             if self.debugging:
                 print('lvl '+str(lvl)+' score added')
-            print(lvl-2)
+                print(lvl-2)
             self.score[lvl-2] +=1
             self.score[3] += self.reward_enemy_lvl_destroyed * lvl**2
         elif mode == 'wa':
@@ -666,10 +666,10 @@ class space_invader:
                         print(str(i+1)+'. projectile checked from'+str(self.proj_fig))
                         # checks intersection
                     if abs(self.proj_fig[i][0]-self.enemy_fig[y][0]) < 4 and abs(self.proj_fig[i][1]-self.enemy_fig[y][1]) < 4:
-                        print(self.enemy_fig[y])
                         reward += self.reward_enemy_lvl_destroyed
                         if self.debugging:
                             print('Enemy ship destroyed ')
+                            print(self.enemy_fig[y])
                         # enemy deleted
                         self.state[self.enemy_fig[y][0]][self.enemy_fig[y][1]] = 0
                         if self.enemy_fig[y][2] != 9: # checks if no centerpiece

@@ -642,13 +642,14 @@ class play_dqn_pygame:
         self.modelLoaded = False
         self.addText("Who should play?", self.blanka, 60, self.White, 400, 100)
         self.addButton("Player", 400, 250, 400, 40, self.spaceInvaderP)
-        self.addButton("AI", 400, 350, 400, 40, self.back)
+        self.addButton("AI", 400, 350, 400, 40, self.spaceInvaderAI)
         self.addButton("Back", 70 ,565, 100, 30, self.back)
 
     def spaceInvaderP(self):
         # when changing dimensions choose values so that all corresponding calculations have integer solutions
         # if first draw, set variables
         if self.first:
+            self.previousGame = self.spaceInvaderP
             self.first = False
             # load data from the game
             self.spaceInvader = g.space_invader()
@@ -672,8 +673,111 @@ class play_dqn_pygame:
             print(self.field)
         self.drawSpaceInvader()
 
+        # saves the keypresses in keys
+        keys=pygame.key.get_pressed()
+        self.shoot_buffer += 1
+        self.action = ['N', False]
+        move_ticker = 0
+        # allocates certain functions to keys
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            if move_ticker == 0:
+                move_ticker = 10
+                self.action = ['L', False]
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            if move_ticker == 0:   
+                move_ticker = 10     
+                self.action = ['R', False]
+        if keys[pygame.K_UP] or keys[pygame.K_w]: 
+            if self.shoot_buffer >= 5:
+                if move_ticker == 0:   
+                    move_ticker = 10   
+                    self.shoot_buffer = 0  
+                    self.action = ['N', True]
+        if self.buffer % 1 == 0: 
+            #print(self.spaceInvader.print())
+            # make next step
+            self.spaceInvader.step(self.action)
+            #print('step called')
+            #for i in range(len(self.spaceInvader.state)):
+             #   print(self.spaceInvader.state[i])
+
+    def spaceInvaderAI(self):
+        if self.first:
+            # when changing dimensions choose values so that all corresponding calculations have integer solutions
+            # if first draw, set variables
+            if self.reallyFirst:
+                self.first = False
+                # load data from the game
+                self.spaceInvader = g.space_invader()
+                # calculate the field-size
+                self.field = [self.spaceInvader.lenState,self.spaceInvader.height]
+                # calculate ratio
+                self.ratio = self.spaceInvader.lenState/self.spaceInvader.height
+                self.counter = 0
+                self.action = ['N', False]
+                # buffer makes game slower
+                self.buffer = 0
+                self.shoot_buffer = 0
+                # internal score
+                self.score = self.spaceInvader.score
+                self.health = self.spaceInvader.health
+                # set width of visualized field
+                self.width = 300
+                # calculate the value of the visualized field
+                self.dimensions = [int(self.ratio * self.width) , int(self.width)]
+
+                # Initialize DQN
+                state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.spaceInvader.variables
+                self.state = state
+
+                if not self.modelLoaded:
+                    self.spaceinvaderDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
+                
+                self.subpath = "spaceinvader"
+            
+            self.first = self.reallyFirst
+            model_name = self.ModelMenu()
+            self.first = True
+
+            # Is set for the abort and retry function
+            self.previousGame = self.spaceInvaderAI
+            
+            if self.modelLoaded == False:
+                if model_name:
+                    directory = "spaceinvader/models/"+model_name+"/TrainNet/"
+                    self.spaceinvaderDQN.model = tf.saved_model.load(directory)
+                    self.first = False
+                    self.modelLoaded = True
+                self.counter = 0
+            else:
+                self.first = False
+            self.reallyFirst = False
+            
+        else:
+            self.drawSpaceInvader()
+
+            inp = self.state
+
+            if self.spaceinvaderDQN.batch_size > 1:
+                # Simulate batch size of 2
+                inp = [self.prevState, self.state]
+
+            action = self.spaceinvaderDQN.get_action(np.array(inp), 0) # TrainNet determines favorable action
+            
+            convAction = ['N', False]
+            if action == 0:
+                convAction = ['L', False]
+            elif action == 1:
+                convAction = ['R', False]
+            elif action == 2:
+                convAction = ['N', True]
+
+            self.prevState = self.state
+            self.spaceInvader.step(convAction)
+
     def endSpaceInvader(self):
         self.first = True
+        self.reallyFirst = True
         self.screen.fill(self.Black)
         msg = "Score: "+str(self.score[3])
         self.addText(msg, self.blanka, 100, self.White, 400, 200)
@@ -695,7 +799,6 @@ class play_dqn_pygame:
         self.health = self.spaceInvader.health
         # check if health is zero and if so go to next screen
         if self.health <= 0:
-            self.previousGame = self.spaceInvaderP
             self.currentScreenFunction = self.endSpaceInvader
             self.endSpaceInvader()
         # iterate over all elements of field
@@ -736,33 +839,6 @@ class play_dqn_pygame:
         self.addText(str(self.score[2]), self.ailerons, 25, self.White, 420, 435)
         self.addText(str(self.score[4]), self.ailerons, 25, self.White, 520, 435)
         self.addText(str(self.score[3]), self.ailerons, 25, self.White, 670, 435)
-        # saves the keypresses in keys
-        keys=pygame.key.get_pressed()
-        self.shoot_buffer += 1
-        self.action = ['N', False]
-        move_ticker = 0
-        # allocates certain functions to keys
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            if move_ticker == 0:
-                move_ticker = 10
-                self.action = ['L', False]
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            if move_ticker == 0:   
-                move_ticker = 10     
-                self.action = ['R', False]
-        if keys[pygame.K_UP] or keys[pygame.K_w]: 
-            if self.shoot_buffer >= 5:
-                if move_ticker == 0:   
-                    move_ticker = 10   
-                    self.shoot_buffer = 0  
-                    self.action = ['N', True]
-        if self.buffer % 1 == 0: 
-            #print(self.spaceInvader.print())
-            # make next step
-            self.spaceInvader.step(self.action)
-            #print('step called')
-            #for i in range(len(self.spaceInvader.state)):
-             #   print(self.spaceInvader.state[i])
 
     def scrollBar(self, page, item, mode):
         if self.first:
