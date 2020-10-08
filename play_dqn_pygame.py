@@ -685,9 +685,9 @@ class play_dqn_pygame:
         # empty screen
         # calculate x and y positioning coordinates and round to integers
         x_len = self.dimensions[0]/self.field[0] 
-        #x_len = int(x_len) 
+        # x_len = int(x_len) 
         y_len = self.dimensions[1]/self.field[1] 
-        #y_len = int(y_len)
+        # y_len = int(y_len)
         self.screen.fill(self.Black)
         # make outer rectangle (white)
         pygame.draw.rect(self.screen, self.White, [400 - self.dimensions[0]/2 - x_len/2, 250 - self.dimensions[1]/2 -y_len/2, self.dimensions[0] + x_len, self.dimensions[1]+ y_len] , 4)

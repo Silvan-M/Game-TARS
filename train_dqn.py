@@ -139,15 +139,66 @@ class train_dqn():
                     print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
                 print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
         return rewards, mean(losses), apples #returns rewards and average
+    
+    def play_space_invader(self, state, environment, epsilon, copy_step):
+        environment.reset()
+        rewards = 0
+        apples = 0
+        iter = 0
+        done = False
+        observations = state
+        prev_observations = observations
+        losses = list()
+        while not done: # observes until game is done 
+            
+            inp = observations
+            if self.TrainNet.batch_size > 1:
+                # Simulate batch size of 2
+                inp = [prev_observations, observations]
+
+            action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
+            
+            prev_observations = observations # saves observations
+            reward, observations =  environment.step(action)
+            
+            done = False
+            if environment.health <= 0:
+                done = True
+
+            if reward == environment.reward_apple:
+                apples += 1
+
+            rewards += reward        
+            exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
+            self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
+            loss = self.TrainNet.train(self.TargetNet) # returns loss 
+            if isinstance(loss, int): # checks if loss is an integer
+                losses.append(loss)
+            else:
+                losses.append(loss.numpy()) # converted into an integer
+            iter += 1 # increment the counter
+            if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+                self.TargetNet.copy_weights(self.TrainNet) 
+
+            if verbose == 1:
+                if done:
+                    print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+            elif verbose == 2:
+                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
+            elif verbose == 3:
+                for row in range(0, environment.field_size):
+                    print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
+                print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
+        return rewards, mean(losses), apples #returns rewards and average
 
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10]}
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvader":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["snake"]
+        game = games["spaceinvader"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -166,7 +217,7 @@ class train_dqn():
 
         # LOADING MODELS - Set one of the variables if you want to load a model
         # Define model name
-        model_name = "model.2020.10.03-23.05.17-I.10-N.25000"
+        model_name = ""
         # Alternatively define relative model path
         model_path = ""
         
