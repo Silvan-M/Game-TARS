@@ -653,7 +653,7 @@ class play_dqn_pygame:
             # load data from the game
             self.spaceInvader = g.space_invader()
             # calculate the field-size
-            self.field = [ self.spaceInvader.lenState,self.spaceInvader.height]
+            self.field = [self.spaceInvader.lenState,self.spaceInvader.height]
             # calculate ratio
             self.ratio = self.spaceInvader.lenState/self.spaceInvader.height
             self.counter = 0
@@ -711,7 +711,7 @@ class play_dqn_pygame:
             pygame.draw.rect(self.screen, self.Teal,[25 + (x_len *3) + (i*30), 430 - y_len, x_len  , y_len])
             pygame.draw.rect(self.screen, self.Teal,[25 + (i*30), 430, x_len * 5 , y_len])
             pygame.draw.rect(self.screen, self.Teal,[25 + x_len+ (i*30) , 430+y_len, x_len * 3 , y_len])  
-            pygame.draw.rect(self.screen, self.Teal,[25  + (x_len*2)+ (i*30) , 430+ (y_len*2), x_len  , y_len])
+            pygame.draw.rect(self.screen, self.Teal,[25 + (x_len*2)+ (i*30) , 430+ (y_len*2), x_len  , y_len])
         
         # load images
         lvl1 = pygame.image.load('resources/lvl1.png')

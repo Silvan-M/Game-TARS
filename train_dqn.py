@@ -158,15 +158,21 @@ class train_dqn():
 
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
             
+            convAction = ['N', False]
+            if action == 0:
+                convAction = ['L', False]
+            elif action == 1:
+                convAction = ['R', False]
+            elif action == 2:
+                convAction = ['N', True]
+
             prev_observations = observations # saves observations
-            reward, observations =  environment.step(action)
+            reward, observations =  environment.step(convAction)
             
             done = False
             if environment.health <= 0:
                 done = True
-
-            if reward == environment.reward_apple:
-                apples += 1
+                reward = environment.reward_ship_destroyed
 
             rewards += reward        
             exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
@@ -189,7 +195,7 @@ class train_dqn():
                 for row in range(0, environment.field_size):
                     print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
                 print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}\n".format(rewards,str(apples),str(done)))
-        return rewards, mean(losses), apples #returns rewards and average
+        return rewards, mean(losses), environment.score #returns rewards and average
 
             
     def main(self, testing):

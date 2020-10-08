@@ -453,7 +453,7 @@ class space_invader:
         # first round
         self.figures_set([65,55], 1)
         self.figures_set([30,20], 2)
-        self.figures_set([45,20], 3)#12345
+        self.figures_set([45,20], 3)
         self.figures_set([60,40], 4)
         gamma = 0.9
         copy_step = 50
@@ -593,6 +593,7 @@ class space_invader:
         # checks every discrete space for movement (projectile, ship) and intersections 
     
     def step(self, action):
+        reward = 0
         self.action = action
         # splitting figures into 3 categories to avoid unnecessary loops
         self.ship_figures = [] # ship, enemies, projectiles
@@ -657,7 +658,6 @@ class space_invader:
                     self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
 
         # describes projectile movement
-        intercept = False
         for i in range(len(self.proj_fig)): # checks all projectiles
             if self.proj_fig[i][2] == 5: # if ships projectile
                 for y in range(len(self.enemy_fig)): # looks if it intersects with one of the enemies
@@ -666,9 +666,8 @@ class space_invader:
                         print(str(i+1)+'. projectile checked from'+str(self.proj_fig))
                         # checks intersection
                     if abs(self.proj_fig[i][0]-self.enemy_fig[y][0]) < 4 and abs(self.proj_fig[i][1]-self.enemy_fig[y][1]) < 4:
-                        intercept = True
-                    if intercept == True:
                         print(self.enemy_fig[y])
+                        reward += self.reward_enemy_lvl_destroyed
                         if self.debugging:
                             print('Enemy ship destroyed ')
                         # enemy deleted
@@ -677,27 +676,24 @@ class space_invader:
                             # adds according score to the scoreboard
                             self.scoreboard( 'de', int(self.enemy_fig[y][2]))
                             #self.enemy_fig.pop(y)
-                        intercept = False
-                    elif self.proj_fig[i][2] == 5 and intercept == False: # ships projectile
+                    elif self.proj_fig[i][2] == 5: # ships projectile
                         # if no intercept move normally
                         self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]-1],self.proj_fig[i][2])
-            intercept = False
             if self.proj_fig[i][2] == 6: # checks if its an enemy projectile
                 for y in range(len(self.ship_figures)):
                     # looks for intersection with ship
                     if abs(self.proj_fig[i][0]-self.ship_figures[y][0]) < 8 and abs(self.proj_fig[i][1]-self.ship_figures[y][1])< 4:
-                        intercept = True
-                    if intercept == True:
                         if self.debugging:
                             print('Ship destroyed ')
+                        reward += self.reward_ship_hit
                         # if intersected lose one healthpoint
                         self.health -= 1
-                    elif self.proj_fig[i][2] == 6 and intercept == False: # enemys projectile
+                    elif self.proj_fig[i][2] == 6: # enemys projectile
                         # if no intercept move normally 
                         self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]+1],self.proj_fig[i][2])
-            intercept = False
             # if no enemies are on the field
         if len(self.enemy_fig) == 0:
+            reward += self.reward_all_enemies_destroyed
             # add points for completing the wave
             self.scoreboard('wa') 
             # makes list to check
@@ -708,7 +704,7 @@ class space_invader:
             x = random.randint(20,140)
             y = random.randint(20, 40)
             # create
-            self.figures_set([x,y], lvl )
+            self.figures_set([x,y], lvl)
             create.append([x,y])
             # make random amount of enemies
             amount = random.randint(0,30)
@@ -734,6 +730,7 @@ class space_invader:
         self.ship_figures = []
         self.enemy_fig = []
         self.proj_fig = []
+        return reward, self.state
 
 class snake:
     def __init__(self):
