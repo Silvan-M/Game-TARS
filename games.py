@@ -442,6 +442,9 @@ class space_invader:
         self.enemy_lvl3 = np.rot90(self.enemy_lvl3)
         self.ship = np.rot90(self.ship)
         self.air = np.rot90(self.air)
+        #just for enemy movement
+        self.count = [0,'r',0] # [overall count, movement direction, movement's direction count]
+
         self.enemy_leftovers = np.rot90(self.enemy_leftovers)
         # self.oneHotState = [0] * self.lenState * 5
         # safes action, action[0] = R or L, action[1] = fire True or False
@@ -452,9 +455,14 @@ class space_invader:
         
         # first round
         self.figures_set([65,55], 1)
-        self.figures_set([30,20], 2)
-        self.figures_set([45,20], 3)
-        self.figures_set([60,40], 4)
+        amount = random.randint(2,6)
+        for i in range(amount):
+                lvl = self.enemy_create()
+                x = random.randint(20,140)
+                y = random.randint(20, 40)
+                self.figures_set([x,y], lvl)
+        self.figures_set([10,40], 4)
+        self.figures_set([130,40], 4)
         gamma = 0.9
         copy_step = 50
         num_state = len(self.state)
@@ -470,7 +478,7 @@ class space_invader:
 
         # Enable debugging if necessary 
         self.debugging = False
-        
+        self.check = 0
         # Space invaders specific rewards
         self.reward_enemy_lvl_destroyed = 100 # Ship destroys enemy 
         self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
@@ -511,6 +519,7 @@ class space_invader:
         # score[4] = wave completed    , 
     
     def scoreboard(self,mode, lvl = None):
+        print(str(mode)+'; '+str(lvl))
         if mode == 'de':
             if self.debugging:
                 print('lvl '+str(lvl)+' score added')
@@ -593,10 +602,12 @@ class space_invader:
         # checks every discrete space for movement (projectile, ship) and intersections 
     
     def step(self, action):
+        
         reward = 0
         self.action = action
         # splitting figures into 3 categories to avoid unnecessary loops
         self.ship_figures = [] # ship, enemies, projectiles
+
         self.enemy_fig = []
         self.proj_fig = []
         # iterating over x and y values
@@ -617,6 +628,9 @@ class space_invader:
                             self.enemy_fig.append([x_value,y_value,self.state[x_value+1][y_value+1]])
                         if self.debugging:
                             print([['ship', self.ship_figures],['enemy', self.enemy_fig],['projectile', self.proj_fig]])
+        if self.check != self.ship_figures:
+            print(self.ship_figures)
+            self.check = self.ship_figures
         # self.state gets reset, information stored in the figures list
         self.reset()
         # looks for movement 
@@ -642,21 +656,99 @@ class space_invader:
                 self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]],1)
             if action[1] == True: # if up key is pressed, fire
                 self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]-5],5)
-        # describes enemy behaviour, uses enemy_action to determine if they fire or not    
-        for i in range(len(self.enemy_fig)):
-            if self.enemy_fig[i][2] == 2: # enemy lvl 1
-                self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],2)
-                if self.enemy_action(1):
-                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
-            elif self.enemy_fig[i][2] == 3: # enemy lvl 2
-                self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],3)
-                if self.enemy_action(2):
-                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
-            elif self.enemy_fig[i][2] == 4: # enemy lvl 3
-                self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],4)
-                if self.enemy_action(3):
-                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+4],6)
-
+        # describes enemy behaviour, uses enemy_action to determine if they fire or not
+        self.count[0] +=1
+        speed = 150-self.score[4]
+        if speed < 10:
+            speed = 10
+        if self.count[0] > speed:
+            self.count[0] = 0  
+            if self.debugging:
+                print('Enemy moved down')
+            for i in range(len(self.enemy_fig)):
+                if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+1],2)
+                    if self.enemy_action(1):
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+1],3)
+                    if self.enemy_action(2):
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                    self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+1],4)
+                    if self.enemy_action(3):
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)    
+        elif self.count[1] == 'r':
+            if self.count[2] > 50:
+                self.count[1] = 'l'
+                self.count[2] = 0
+            else:
+                self.count[2] += 1
+            if self.count[2]%5 == 0:
+                for i in range(len(self.enemy_fig)):
+                    if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                        self.figures_set([self.enemy_fig[i][0]+1,self.enemy_fig[i][1]],2)
+                        if self.enemy_action(1):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                        self.figures_set([self.enemy_fig[i][0]+1,self.enemy_fig[i][1]],3)
+                        if self.enemy_action(2):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                        self.figures_set([self.enemy_fig[i][0]+1,self.enemy_fig[i][1]],4)
+                        if self.enemy_action(3):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6) 
+            else:
+                for i in range(len(self.enemy_fig)):
+                    if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],2)
+                        if self.enemy_action(1):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],3)
+                        if self.enemy_action(2):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],4)
+                        if self.enemy_action(3):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6) 
+        elif self.count[1] == 'l':
+            if self.count[2] > 50:
+                self.count[1] = 'r'
+                self.count[2] = 0
+            else:
+                self.count[2] += 1
+                self.count[1] == 'r'
+            if self.count[2]%5 == 0:
+                for i in range(len(self.enemy_fig)):
+                    if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                        self.figures_set([self.enemy_fig[i][0]-1,self.enemy_fig[i][1]],2)
+                        if self.enemy_action(1):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                        self.figures_set([self.enemy_fig[i][0]-1,self.enemy_fig[i][1]],3)
+                        if self.enemy_action(2):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                        self.figures_set([self.enemy_fig[i][0]-1,self.enemy_fig[i][1]],4)
+                        if self.enemy_action(3):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6) 
+            else:
+                for i in range(len(self.enemy_fig)):
+                    if self.enemy_fig[i][2] == 2: # enemy lvl 1
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],2)
+                        if self.enemy_action(1):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 3: # enemy lvl 2
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],3)
+                        if self.enemy_action(2):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6)
+                    elif self.enemy_fig[i][2] == 4: # enemy lvl 3
+                        self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]],4)
+                        if self.enemy_action(3):
+                            self.figures_set([self.enemy_fig[i][0],self.enemy_fig[i][1]+6],6) 
+        else:
+            print('none')  
         # describes projectile movement
         for i in range(len(self.proj_fig)): # checks all projectiles
             if self.proj_fig[i][2] == 5: # if ships projectile
@@ -691,6 +783,10 @@ class space_invader:
                     elif self.proj_fig[i][2] == 6: # enemys projectile
                         # if no intercept move normally 
                         self.figures_set([self.proj_fig[i][0],self.proj_fig[i][1]+1],self.proj_fig[i][2])
+            # looks if enemy ship is at the bottom
+            for i in range(len(self.enemy_fig)):
+                if self.enemy_fig[i][1] > 50:
+                    self.health = 0
             # if no enemies are on the field
         if len(self.enemy_fig) == 0:
             reward += self.reward_all_enemies_destroyed

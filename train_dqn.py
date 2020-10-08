@@ -141,6 +141,8 @@ class train_dqn():
         return rewards, mean(losses), apples #returns rewards and average
     
     def play_space_invader(self, state, _, epsilon, copy_step):
+        check_action = None
+        check_action_count = 0
         environment = g.space_invader()
         rewards = 0
         iter = 0
@@ -156,7 +158,14 @@ class train_dqn():
                 inp = [prev_observations, observations]
 
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
-            
+            '''if check_action == action: 
+                check_action_count += 1
+            else:
+                check_action = action 
+            if check_action_count > 100:
+                check_action_count = 0
+                print(action)
+                done = True'''
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
@@ -199,7 +208,7 @@ class train_dqn():
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvader":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
         game = games["spaceinvaders"]
