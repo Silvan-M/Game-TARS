@@ -113,7 +113,6 @@ class train_dqn():
             
             prev_observations = observations # saves observations
             done, reward, observations =  environment.step(action)
-
             if reward == environment.reward_apple:
                 apples += 1
 
@@ -148,6 +147,8 @@ class train_dqn():
         iter = 0
         done = False
         observations = state
+        observations = np.asarray(observations)
+        observations = observations.flatten()
         prev_observations = observations
         losses = list()
         observationBatch = [observations]*self.TrainNet.batch_size
@@ -156,7 +157,6 @@ class train_dqn():
             # Change input depending on batch_size
             observationBatch.pop(0)
             observationBatch.append(observations)
-
             action = self.TrainNet.get_action(np.array(observationBatch), 0) # TrainNet determines favorable action
             '''if check_action == action: 
                 check_action_count += 1
@@ -176,7 +176,8 @@ class train_dqn():
 
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
-            
+            observations = np.asarray(observations)
+            observations = observations.flatten()
             if environment.health <= 0:
                 done = True
                 reward = environment.reward_ship_destroyed
@@ -211,7 +212,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["tictactoe"]
+        game = games["spaceinvaders"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
