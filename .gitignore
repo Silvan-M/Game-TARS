@@ -30,6 +30,6 @@ spaceinvader/models/*
 !snake/models/.keep
 !spaceinvader/models/.keep
 
-!tictactoe/models/0_PretrainedModel
-!snake/models/0_PretrainedModel
-!spaceinvader/models/0_PretrainedModel
+!tictactoe/models/pretrained_model
+!snake/models/pretrained_model
+!spaceinvader/models/pretrained_model

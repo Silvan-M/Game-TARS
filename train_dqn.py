@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 1
+verbose = 0
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -150,14 +150,14 @@ class train_dqn():
         observations = state
         prev_observations = observations
         losses = list()
+        observationBatch = [observations]*self.TrainNet.batch_size
         while not done: # observes until game is done 
             
-            inp = observations
-            if self.TrainNet.batch_size > 1:
-                # Simulate batch size of 2
-                inp = [prev_observations, observations]
+            # Change input depending on batch_size
+            observationBatch.pop(0)
+            observationBatch.append(observations)
 
-            action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
+            action = self.TrainNet.get_action(np.array(observationBatch), 0) # TrainNet determines favorable action
             '''if check_action == action: 
                 check_action_count += 1
             else:
@@ -181,7 +181,7 @@ class train_dqn():
                 done = True
                 reward = environment.reward_ship_destroyed
 
-            rewards += reward        
+            rewards += reward
             exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
             self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
             loss = self.TrainNet.train(self.TargetNet) # returns loss 
@@ -211,7 +211,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["spaceinvaders"]
+        game = games["tictactoe"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
