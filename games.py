@@ -3,7 +3,7 @@ import time
 import min_max_alg as mma
 import numpy as np
 import floodfill as flood
-
+import tensorflow as tf
 class tictactoe:
     def __init__(self):
         # Ignore this (counters)
@@ -520,12 +520,12 @@ class space_invader:
                 y = random.randint(20, 40)
                 self.figures_set([x,y], lvl)
         self.figures_set([10,40], 4)
-        self.figures_set([130,40], 4)
+        self.figures_set([135,40], 4)
         gamma = 0.9
         copy_step = 50
         num_state = len(self.state)
         num_actions = 3 # 0 = Left, 1 = Right, 2 = Fire
-        hidden_units = [27*9]
+        hidden_units = [1028,1028,1028]
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
@@ -537,13 +537,15 @@ class space_invader:
         # Enable debugging if necessary 
         self.debugging = False
         self.check = 0
+        self.check_enemy = []
+        self.message = None
         # Space invaders specific rewards
         self.reward_enemy_lvl_destroyed = 100 # Ship destroys enemy 
         self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
         self.reward_ship_hit = -500 # Ship loses one life
         self.reward_ship_destroyed = -1000 # Ship gets destroyed
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
-        
+        self.safe = []
         # States:
             # 0 = air
             # 1 = ship
@@ -577,7 +579,6 @@ class space_invader:
         # score[4] = wave completed    , 
     
     def scoreboard(self,mode, lvl = None):
-        print(str(mode)+'; '+str(lvl))
         if mode == 'de':
             if self.debugging:
                 print('lvl '+str(lvl)+' score added')
@@ -658,7 +659,30 @@ class space_invader:
             print(self.state[i])
         # makes one step
         # checks every discrete space for movement (projectile, ship) and intersections 
-    
+    def replacer(self):
+                # 0 = air           --> 0
+                # 1 = ship          --> 1
+                # 2 = enemy_lvl1    --> -1
+                # 3 = enemy_lvl2    --> -1
+                # 4 = enemy_lvl3    --> -1
+                # 5 = ship_bullet   --> -1
+                # 6 = enemy_bullet  --> 1
+                # 9 = center        --> 1
+        transition = [[0,0],[1,1],[2,-1],[3,-1],[4,-1],[5,1],[6,0],[9,0]]
+        self.return_state=[]
+        for i in range(len(transition)):
+            old = transition[i][0]
+            new = transition[i][1]
+            for x in range(len(self.state)):
+                holder = np.zeros(len((self.state[x])),dtype="float32")
+                self.return_state.append(holder)
+
+                for y in range(len(self.state[x])):
+                    if self.state[x][y]== old:
+                        self.return_state[x][y] = new
+        return self.return_state
+
+
     def step(self, action):
         
         reward = 0
@@ -686,9 +710,11 @@ class space_invader:
                             self.enemy_fig.append([x_value,y_value,self.state[x_value+1][y_value+1]])
                         if self.debugging:
                             print([['ship', self.ship_figures],['enemy', self.enemy_fig],['projectile', self.proj_fig]])
-        if self.check != self.ship_figures:
-            print(self.ship_figures)
-            self.check = self.ship_figures
+        self.safe = self.proj_fig 
+        if self.debugging:
+            if self.check != self.ship_figures:
+                print('ship movement ',self.ship_figures)
+                self.check = self.ship_figures
         # self.state gets reset, information stored in the figures list
         self.reset()
         # looks for movement 
@@ -817,6 +843,10 @@ class space_invader:
                         # checks intersection
                     if abs(self.proj_fig[i][0]-self.enemy_fig[y][0]) < 4 and abs(self.proj_fig[i][1]-self.enemy_fig[y][1]) < 4:
                         reward += self.reward_enemy_lvl_destroyed
+                        if self.message != self.enemy_fig[y]:
+                            self.message = self.enemy_fig[y]
+                            print('Enemy ship destroyed at',self.enemy_fig[y])
+                        
                         if self.debugging:
                             print('Enemy ship destroyed ')
                             print(self.enemy_fig[y])
@@ -881,10 +911,16 @@ class space_invader:
                     self.figures_set([x,y], lvl )
                     create.append([x,y])
             create = []      
+
+        '''if len(self.enemy_fig) != len(self.check_enemy):
+            self.check_enemy == self.enemy_fig
+            print('enemies: ',str(self.enemy_fig))'''
         self.ship_figures = []
         self.enemy_fig = []
         self.proj_fig = []
-        return reward, self.state
+
+
+        return reward, self.replacer() #(tf.one_hot(self.replacer(), len(self.state),axis = 1))
 
 class snake:
     def __init__(self):

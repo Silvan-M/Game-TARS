@@ -460,7 +460,7 @@ class play_dqn_pygame:
                     q_list_prob=[]
                     q_list_min = np.min(q)
                     q_list_max = np.max(q)
-                    for qi in q:
+                    for qi in q:  
                         q_list_prob.append(float((qi-q_list_min)/(q_list_max-q_list_min)))
                     for i, p in enumerate(q_list_prob):
                         if self.tictactoe.isIllegalMove(i):
@@ -922,7 +922,7 @@ class play_dqn_pygame:
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake', 400, 350, 400, 40, self.snakeMenu)
-        self.addButton("Space Invaders", 400, 400, 400, 40, self.spaceInvaderMenu)
+        self.addButton("Space Invaders b", 400, 400, 400, 40, self.spaceInvaderMenu)
 
     def back(self):
         self.first = True

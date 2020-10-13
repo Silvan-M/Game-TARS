@@ -154,18 +154,13 @@ class train_dqn():
         observationBatch = [observations]*self.TrainNet.batch_size
         while not done: # observes until game is done 
             
-            # Change input depending on batch_size
-            observationBatch.pop(0)
-            observationBatch.append(observations)
-            action = self.TrainNet.get_action(np.array(observationBatch), 0) # TrainNet determines favorable action
-            '''if check_action == action: 
-                check_action_count += 1
-            else:
-                check_action = action 
-            if check_action_count > 100:
-                check_action_count = 0
-                print(action)
-                done = True'''
+            inp = observations
+            if self.TrainNet.batch_size > 1:
+                # Simulate batch size of 2
+                inp = [prev_observations, observations]
+
+            action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
+
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
@@ -173,7 +168,16 @@ class train_dqn():
                 convAction = ['R', False]
             elif action == 2:
                 convAction = ['N', True]
+            if check_action == convAction: 
+                check_action_count += 1
+            else:
+                check_action = convAction 
+            if check_action_count > 500:
+                rewards =  reward -10000
+                check_action_count = 0
+                print('killed by nothingness',convAction)
 
+                done = True
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
             observations = np.asarray(observations)
@@ -182,6 +186,7 @@ class train_dqn():
                 done = True
                 reward = environment.reward_ship_destroyed
 
+      
             rewards += reward
             exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
             self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
