@@ -146,21 +146,19 @@ class train_dqn():
         rewards = 0
         iter = 0
         done = False
-        observations = state
-        observations = np.asarray(observations)
-        observations = observations.flatten()
+        observations = np.float32(np.asarray(environment.replacer()).flatten())
         prev_observations = observations
         losses = list()
-        observationBatch = [observations]*self.TrainNet.batch_size
+
         while not done: # observes until game is done 
             
             inp = observations
             if self.TrainNet.batch_size > 1:
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
-
+            
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
-
+            
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
@@ -173,15 +171,15 @@ class train_dqn():
             else:
                 check_action = convAction 
             if check_action_count > 500:
-                rewards =  reward -10000
+                reward -= 10000
                 check_action_count = 0
                 print('killed by nothingness',convAction)
 
                 done = True
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
-            observations = np.asarray(observations)
-            observations = observations.flatten()
+            observations = np.asarray(observations).flatten()
+
             if environment.health <= 0:
                 done = True
                 reward = environment.reward_ship_destroyed
