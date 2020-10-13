@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 1
+verbose = 0
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -113,7 +113,6 @@ class train_dqn():
             
             prev_observations = observations # saves observations
             done, reward, observations =  environment.step(action)
-
             if reward == environment.reward_apple:
                 apples += 1
 
@@ -148,8 +147,11 @@ class train_dqn():
         iter = 0
         done = False
         observations = state
+        observations = np.asarray(observations)
+        observations = observations.flatten()
         prev_observations = observations
         losses = list()
+        observationBatch = [observations]*self.TrainNet.batch_size
         while not done: # observes until game is done 
             
             inp = observations
@@ -178,12 +180,14 @@ class train_dqn():
                 done = True
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
-            
+            observations = np.asarray(observations)
+            observations = observations.flatten()
             if environment.health <= 0:
                 done = True
                 reward = environment.reward_ship_destroyed
 
       
+            rewards += reward
             exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
             self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
             loss = self.TrainNet.train(self.TargetNet) # returns loss 

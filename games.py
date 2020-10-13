@@ -6,7 +6,11 @@ import floodfill as flood
 import tensorflow as tf
 class tictactoe:
     def __init__(self):
+        # Ignore this (counters)
         self.illegalcount = 0
+        self.fineTuneSelection = 4567
+        self.fineTuneDetection = ""
+
 
         # Variables
         state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -15,7 +19,7 @@ class tictactoe:
         copy_step = 1
         num_state = 18
         num_actions = 9
-        hidden_units = [27*9]
+        hidden_units = [27*9*2]*2
         max_experience = 50000
         min_experience = 100
         batch_size = 1
@@ -23,19 +27,39 @@ class tictactoe:
         epsilon = 1
         min_epsilon = 0.01
         decay = 0.99
+        
+        # FINE TUNING: Here you can specify combinations which the AI cannot solve correctly, then the AI will be trained with those combinations
+        # Notice: Empricial data has proven, that this method is usually leading to overshooting (network changes too drastically), so therefore don't expect much.
+        self.fineTune = False
+        self.combinationsToTest = ["576", "765", "675", "756", "0753", "7053"] # Insert combinations as strings eg. ["576","7053"]
+        self.currentCombination = "576" # First combination to test (not so important, can be left empty)
+        self.fineTuneAlpha = 0.0001 # Alpha should be lower when performing fine tune, so here you can specify alpha when fineTune is enabled
+       
+        if self.fineTune:
+            alpha = self.fineTuneAlpha
+            print("WARNING: RUNNING IN FINE TUNE MODE, ONLY CHECKING COMBINATIONS SPECIFIED")
+
         self.variables = [state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
+
+        # Same as fineTune, but automatically, the opponent remembers win strathegy
+        self.detectFineTune = False
+
+        if self.detectFineTune:
+            if len(self.combinationsToTest) == 0:
+                self.combinationsToTest = ["407"]
+            self.fineTune = True
 
         # Enable debugging if necessary
         self.debugging = False
         
         # TicTacToe rewards
         self.reward_tie = 5000
-        self.reward_win = 5000
-        self.reward_lose = -1250
+        self.reward_win = 6000
+        self.reward_lose = -5000
         self.reward_illegal_move = 0
         self.reward_legal_move = 0
         self.reward_immediate_preset = 0
-        self.reward_immediate_prevent = 1000
+        self.reward_immediate_prevent = 2000
     
     def reset(self):
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -277,18 +301,41 @@ class tictactoe:
 
         # if game is done, end the game
         done, winner = self.checkWhoWon()
-        
-        while (0 in self.state) and not illegalmove and not done:
-            if ran:
-                if self.state[4] == 0 and random.random()>0.3:
-                    var = 4
+
+        if not self.fineTune:
+            while (0 in self.state) and not illegalmove and not done:
+                if ran:
+                    if self.state[4] == 0 and random.random()>0.3:
+                        var = 4
+                    else:
+                        var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
                 else:
-                    var = random.randint(0,8) # 0 = empty, 1 = AI, 2 = player
+                    var = mma.GetMove(self.state, False)
+                if self.state[var] == 0:
+                    self.state[var] = 2
+                    break
+        else:
+            # FINE TUNING: It checks combinations specified at initialisation
+            if self.currentCombination != "":
+                var = int(self.currentCombination[0])
+                self.currentCombination = self.currentCombination[1:]
+                while (0 in self.state) and not illegalmove and not done:
+                    if self.state[var] == 0:
+                        self.fineTuneDetection += str(var)
+                        self.state[var] = 2
+                        break
+                    else:
+                        var = random.randint(0,8)
             else:
-                var = mma.GetMove(self.state, False)
-            if self.state[var] == 0:
-                self.state[var] = 2
-                break
+                var = random.randint(0,8)
+                while (0 in self.state) and not illegalmove and not done:
+                    if self.state[var] == 0:
+                        self.fineTuneDetection += str(var)
+                        self.state[var] = 2
+                        break
+                    else:
+                        var = random.randint(0,8)
+
 
         
         # Check again
@@ -296,13 +343,24 @@ class tictactoe:
         if done:
             #print('illegal moves: ' +str(self.illegalcount)+', winner: '+str(winner))
             if winner == 1:
+                self.fineTuneDetection = ""
                 reward = self.reward_win
                 won = True
                 lose = False
             else:
+                self.combinationsToTest.append(self.fineTuneDetection)
+                self.fineTuneDetection = ""
+                if len(self.combinationsToTest) > 7:
+                    self.combinationsToTest.pop(0)
                 lose = True
                 won = False
                 reward = self.reward_lose
+
+            
+            # Fine tuning reset
+            if self.fineTune:
+                if random.random() <= 0.3:
+                    self.currentCombination = np.random.choice(self.combinationsToTest)
 
         # Tie
         if (0 not in self.state) and not done:
@@ -451,7 +509,7 @@ class space_invader:
         self.action = ['N',False] # R = move right, L = move Left, True/False = Fire
         self.health = 3
         self.figures = [] # list with all object in the game [object, x_center, y_center]
-        self.batch_size = 1
+        self.batch_size = 2
         
         # first round
         self.figures_set([65,55], 1)
