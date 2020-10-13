@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 0
+verbose = 2
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -158,7 +158,6 @@ class train_dqn():
                 inp = [prev_observations, observations]
             
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
-            
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
@@ -201,11 +200,9 @@ class train_dqn():
                 if done:
                     print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 2:
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
             elif verbose == 3:
-                for row in range(0, environment.field_size):
-                    print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}\n".format(rewards,str(environment.score[3]),str(done)))
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
         return rewards, mean(losses), environment.score[3] #returns rewards and average
 
             
