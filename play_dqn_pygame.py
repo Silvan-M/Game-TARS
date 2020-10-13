@@ -729,6 +729,7 @@ class play_dqn_pygame:
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.spaceInvader.variables
                 self.state = state
+                self.prevState = state
 
                 if not self.modelLoaded:
                     self.spaceinvaderDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
@@ -760,7 +761,7 @@ class play_dqn_pygame:
 
             if self.spaceinvaderDQN.batch_size > 1:
                 # Simulate batch size of 2
-                inp = [self.prevState, self.state]
+                inp = [np.asarray(self.prevState).flatten(), np.asarray(self.state).flatten()]
 
             action = self.spaceinvaderDQN.get_action(np.array(inp), 0) # TrainNet determines favorable action
             
