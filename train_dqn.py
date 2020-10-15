@@ -170,9 +170,10 @@ class train_dqn():
             if check_action == convAction: 
                 check_action_count += 1
             else:
+                check_action_count = 0
                 check_action = convAction 
             if check_action_count > 500:
-                reward -= 10000
+                reward += environment.reward_ship_destroyed*2
                 check_action_count = 0
                 if verbose > 1:
                     print('killed by nothingness',convAction)

@@ -744,6 +744,7 @@ class play_dqn_pygame:
             if self.modelLoaded == False:
                 if model_name:
                     directory = "spaceinvader/models/"+model_name+"/TrainNet/"
+                    print("Loading: ",directory)
                     self.spaceinvaderDQN.model = tf.saved_model.load(directory)
                     self.first = False
                     self.modelLoaded = True
@@ -773,7 +774,7 @@ class play_dqn_pygame:
                 convAction = ['N', True]
 
             self.prevState = self.state
-            self.spaceInvader.step(convAction)
+            _, self.state = self.spaceInvader.step(convAction)
 
     def endSpaceInvader(self):
         self.first = True

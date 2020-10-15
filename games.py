@@ -1,4 +1,4 @@
-simport random
+import random
 import time
 import min_max_alg as mma
 import numpy as np
@@ -541,8 +541,8 @@ class space_invader:
         self.check_enemy = []
         self.message = None
         # Space invaders specific rewards
-        self.reward_enemy_lvl_destroyed = 100 # Ship destroys enemy 
-        self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
+        self.reward_enemy_lvl_destroyed = 1000 # Ship destroys enemy 
+        self.reward_all_enemies_destroyed = 5000 # Ship destroys all enemies
         self.reward_ship_hit = -500 # Ship loses one life
         self.reward_ship_destroyed = -1000 # Ship gets destroyed
         self.reward_ship_targeted = 50 # Ship shoots when below an enemy
