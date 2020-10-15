@@ -1,4 +1,4 @@
-import random
+simport random
 import time
 import min_max_alg as mma
 import numpy as np
@@ -523,7 +523,8 @@ class space_invader:
         self.figures_set([135,40], 4)
         gamma = 0.9
         copy_step = 50
-        num_state = len(self.state)
+        #num_state = len(self.state)
+        num_state = 4
         num_actions = 3 # 0 = Left, 1 = Right, 2 = Fire
         hidden_units = [1028,1028,1028]
         max_experience = 50000
@@ -544,6 +545,8 @@ class space_invader:
         self.reward_all_enemies_destroyed = 500 # Ship destroys all enemies
         self.reward_ship_hit = -500 # Ship loses one life
         self.reward_ship_destroyed = -1000 # Ship gets destroyed
+        self.reward_ship_targeted = 50 # Ship shoots when below an enemy
+        self.reward_nothing_targeted = -50 # Ship shoots into oblivion
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
         # States:
@@ -682,6 +685,48 @@ class space_invader:
                         self.return_state[x][y] = new
         return self.return_state
 
+    def get4State(self):
+        additionalReward = 0
+
+        # Checking side of nearest ship
+        nearestShipLeft = 0
+        nearestShipRight = 0
+
+        xPosShips = []
+        xPosPlayer = self.ship_figures[0][0]
+        for i in self.enemy_fig:
+            xPosShips.append(i[0])
+        
+        lowest = 50000 # Some high number as default
+        for i in xPosShips:
+            if abs(i - xPosPlayer) < lowest:
+                lowest = abs(i - xPosPlayer)
+                if i - xPosPlayer < 0:
+                    nearestShipLeft = 1
+                    nearestShipRight = 0
+                else:
+                    nearestShipLeft = 0
+                    nearestShipRight = 1
+        
+        # Check for ships above
+        shipAbove = 0
+        for i in range(len(self.enemy_fig)):
+            if abs(xPosPlayer-self.enemy_fig[i][0]) < 4:
+                shipAbove = 1
+        
+        # Reward agent if he shoots when below an enemy
+        if (shipAbove == 1) and (self.action[1] == True):
+            additionalReward += self.reward_ship_targeted
+        elif (shipAbove == 0) and (self.action[1] == True):
+            additionalReward += self.reward_nothing_targeted
+
+        # Checks if an enemy projectile is above the ship
+        enemyProjectileAbove = 0
+        for i in range(len(self.proj_fig)):
+            if (abs(xPosPlayer-self.proj_fig[i][0]) < 8) and (self.proj_fig[i][2] == 6):
+                enemyProjectileAbove = 1
+
+        return additionalReward, [nearestShipLeft, nearestShipRight, shipAbove, enemyProjectileAbove]
 
     def step(self, action):
         
@@ -768,7 +813,7 @@ class space_invader:
                 self.count[2] = 0
             else:
                 self.count[2] += 1
-            if self.count[2]%5 == 0:
+            if self.count[2]%3487349789343 == 0:
                 for i in range(len(self.enemy_fig)):
                     if self.enemy_fig[i][2] == 2: # enemy lvl 1
                         self.figures_set([self.enemy_fig[i][0]+1,self.enemy_fig[i][1]],2)
@@ -803,7 +848,7 @@ class space_invader:
             else:
                 self.count[2] += 1
                 self.count[1] == 'r'
-            if self.count[2]%5 == 0:
+            if self.count[2]%3487349789343 == 0:
                 for i in range(len(self.enemy_fig)):
                     if self.enemy_fig[i][2] == 2: # enemy lvl 1
                         self.figures_set([self.enemy_fig[i][0]-1,self.enemy_fig[i][1]],2)
@@ -845,10 +890,9 @@ class space_invader:
                         reward += self.reward_enemy_lvl_destroyed
                         if self.message != self.enemy_fig[y]:
                             self.message = self.enemy_fig[y]
-                            print('Enemy ship destroyed at',self.enemy_fig[y])
                         
                         if self.debugging:
-                            print('Enemy ship destroyed ')
+                            print('Enemy ship destroyed at',self.enemy_fig[y])
                             print(self.enemy_fig[y])
                         # enemy deleted
                         self.state[self.enemy_fig[y][0]][self.enemy_fig[y][1]] = 0
@@ -876,6 +920,7 @@ class space_invader:
                 if self.enemy_fig[i][1] > 50:
                     self.health = 0
             # if no enemies are on the field
+        
         if len(self.enemy_fig) == 0:
             reward += self.reward_all_enemies_destroyed
             # add points for completing the wave
@@ -915,12 +960,17 @@ class space_invader:
         '''if len(self.enemy_fig) != len(self.check_enemy):
             self.check_enemy == self.enemy_fig
             print('enemies: ',str(self.enemy_fig))'''
+        
+        additionalReward, returnState = self.get4State()
+        
+        reward += additionalReward
+
         self.ship_figures = []
         self.enemy_fig = []
         self.proj_fig = []
 
-
-        return reward, self.replacer() #(tf.one_hot(self.replacer(), len(self.state),axis = 1))
+        return reward, returnState
+        # return reward, self.replacer() #(tf.one_hot(self.replacer(), len(self.state),axis = 1))
 
 class snake:
     def __init__(self):

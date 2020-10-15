@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 2
+verbose = 1
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -146,17 +146,19 @@ class train_dqn():
         rewards = 0
         iter = 0
         done = False
-        observations = np.float32(np.asarray(environment.replacer()).flatten())
+        observations = np.float32(np.asarray([0]*self.num_states))
+        #observations = np.float32(np.asarray(environment.replacer()).flatten())
         prev_observations = observations
         losses = list()
-
+        nr = 0
         while not done: # observes until game is done 
             
             inp = observations
             if self.TrainNet.batch_size > 1:
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
-            
+            nr += 1
+
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
             convAction = ['N', False]
             if action == 0:
@@ -172,11 +174,13 @@ class train_dqn():
             if check_action_count > 500:
                 reward -= 10000
                 check_action_count = 0
-                print('killed by nothingness',convAction)
+                if verbose > 1:
+                    print('killed by nothingness',convAction)
 
                 done = True
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
+
             observations = np.asarray(observations).flatten()
 
             if environment.health <= 0:
@@ -225,6 +229,7 @@ class train_dqn():
         # min_experiences: sets the start of the agent learning
         # batch_size: amount of data processed at once
         # alpha: learning rate, defines how drastically it changes weights
+        self.num_states = num_states
         
         self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
         self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)

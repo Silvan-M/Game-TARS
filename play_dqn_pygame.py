@@ -669,8 +669,6 @@ class play_dqn_pygame:
             self.width = 300
             # calculate the value of the visualized field
             self.dimensions = [int(self.ratio * self.width) , int(self.width) ]
-            print(self.dimensions)
-            print(self.field)
         self.drawSpaceInvader()
 
         # saves the keypresses in keys
@@ -696,7 +694,7 @@ class play_dqn_pygame:
         if self.buffer % 1 == 0: 
             #print(self.spaceInvader.print())
             # make next step
-            self.spaceInvader.step(self.action)
+            reward, returnState = self.spaceInvader.step(self.action)
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):
              #   print(self.spaceInvader.state[i])
@@ -728,8 +726,8 @@ class play_dqn_pygame:
 
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.spaceInvader.variables
-                self.state = state
-                self.prevState = state
+                self.state = [0,0,0,0]
+                self.prevState = [0,0,0,0]
 
                 if not self.modelLoaded:
                     self.spaceinvaderDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
@@ -756,6 +754,7 @@ class play_dqn_pygame:
             
         else:
             self.drawSpaceInvader()
+            self.addButton("Abort and Retry", 680 ,570, 200, 30, self.abortAndRetry)
 
             inp = self.state
 
