@@ -169,13 +169,13 @@ class train_dqn():
                 convAction = ['N', True]
             elif action == 3:
                 convAction = ['N', False]
-            if check_action == convAction: 
+            if check_action == convAction or (check_action == ['N', False] and convAction == ['N', True]) and (check_action == ['N', True] and convAction == ['N', False]): 
                 check_action_count += 1
             else:
                 check_action_count = 0
                 check_action = convAction 
             if check_action_count > 500:
-                reward += environment.reward_times_up
+                reward += environment.reward_time_up
                 check_action_count = 0
                 if verbose > 1:
                     print('killed by nothingness',convAction)

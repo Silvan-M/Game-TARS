@@ -541,12 +541,12 @@ class space_invader:
         self.check_enemy = []
         self.message = None
         # Space invaders specific rewards
-        self.reward_enemy_lvl_destroyed = 1000 # Ship destroys enemy 
-        self.reward_all_enemies_destroyed = 5000 # Ship destroys all enemies
-        self.reward_ship_hit = -500 # Ship loses one life
+        self.reward_enemy_lvl_destroyed = 2000 # Ship destroys enemy 
+        self.reward_all_enemies_destroyed = 2500 # Ship destroys all enemies
+        self.reward_ship_hit = -750 # Ship loses one life
         self.reward_ship_destroyed = -1000 # Ship gets destroyed
-        self.reward_times_up = -2000 # Ship dies because time is up and enemies are up close
-        self.reward_ship_targeted = 50 # Ship shoots when below an enemy
+        self.reward_time_up = -3000 # Ship dies because time is up and enemies are up close
+        self.reward_ship_targeted = 500 # Ship shoots when below an enemy
         self.reward_nothing_targeted = -50 # Ship shoots into oblivion
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
