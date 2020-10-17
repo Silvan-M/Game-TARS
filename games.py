@@ -432,6 +432,8 @@ class tictactoe:
 class space_invader:
     def __init__(self):
         self.illegalcount = 0
+        self.prevPos = 0
+        self.prevPosCounter = 0
         # Important field size variable
         # Variables
         self.lenState = 150
@@ -509,7 +511,7 @@ class space_invader:
         self.action = ['N',False] # R = move right, L = move Left, True/False = Fire
         self.health = 3
         self.figures = [] # list with all object in the game [object, x_center, y_center]
-        self.batch_size = 2
+        self.batch_size = 1
         
         # first round
         self.figures_set([65,55], 1)
@@ -524,9 +526,9 @@ class space_invader:
         gamma = 0.9
         copy_step = 50
         #num_state = len(self.state)
-        num_state = 4
-        num_actions = 3 # 0 = Left, 1 = Right, 2 = Fire
-        hidden_units = [1028,1028,1028]
+        num_state = 5
+        num_actions = 4 # 0 = Left, 1 = Right, 2 = Fire
+        hidden_units = [1028]
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
@@ -540,13 +542,16 @@ class space_invader:
         self.check = 0
         self.check_enemy = []
         self.message = None
+
         # Space invaders specific rewards
-        self.reward_enemy_lvl_destroyed = 1000 # Ship destroys enemy 
-        self.reward_all_enemies_destroyed = 5000 # Ship destroys all enemies
-        self.reward_ship_hit = -500 # Ship loses one life
-        self.reward_ship_destroyed = -1000 # Ship gets destroyed
-        self.reward_ship_targeted = 50 # Ship shoots when below an enemy
+        self.reward_enemy_lvl_destroyed = 1500 # Ship destroys enemy 
+        self.reward_all_enemies_destroyed = 2500 # Ship destroys all enemies
+        self.reward_ship_hit = -1000 # Ship loses one life
+        self.reward_ship_destroyed = -1250 # Ship gets destroyed
+        self.reward_time_up = -3000 # Ship dies because time is up and enemies are up close
+        self.reward_ship_targeted = 500 # Ship shoots when below an enemy
         self.reward_nothing_targeted = -50 # Ship shoots into oblivion
+        self.reward_no_move = -500 # Ship does not move after 500 moves
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
         # States:
@@ -728,6 +733,123 @@ class space_invader:
 
         return additionalReward, [nearestShipLeft, nearestShipRight, shipAbove, enemyProjectileAbove]
 
+    def get5State(self):
+        additionalReward = 0
+
+        # Checking side of nearest ship
+        nearestShipLeft = 0
+        nearestShipRight = 0
+
+        xPosShips = []
+        xPosPlayer = self.ship_figures[0][0]
+        for i in self.enemy_fig:
+            xPosShips.append(i[0])
+        
+        lowest = 50000 # Some high number as default
+        for i in xPosShips:
+            if abs(i - xPosPlayer) < lowest:
+                lowest = abs(i - xPosPlayer)
+                if i - xPosPlayer < 0:
+                    nearestShipLeft = 1
+                    nearestShipRight = 0
+                else:
+                    nearestShipLeft = 0
+                    nearestShipRight = 1
+        
+        # Check for ships above
+        shipAbove = 0
+        for i in range(len(self.enemy_fig)):
+            if abs(xPosPlayer-self.enemy_fig[i][0]) < 4:
+                shipAbove = 1
+        
+        # Reward agent if he shoots when below an enemy
+        if (shipAbove == 1) and (self.action[1] == True):
+            additionalReward += self.reward_ship_targeted
+        elif (shipAbove == 0) and (self.action[1] == True):
+            additionalReward += self.reward_nothing_targeted
+
+        # Checks if an enemy projectile is above the ship
+        enemyProjectileLeft = 0
+        enemyProjectileRight = 0
+        lowestL = 50000 # Some high number as default
+        lowestR = 50000 # Some high number as default
+        for i in range(len(self.proj_fig)):
+            if (xPosPlayer-self.proj_fig[i][0] < 0) and (self.proj_fig[i][2] == 6):
+                if lowestR > self.proj_fig[i][0]-xPosPlayer:
+                    lowestR = self.proj_fig[i][0]-xPosPlayer
+            elif (xPosPlayer-self.proj_fig[i][0] > 0) and (self.proj_fig[i][2] == 6):
+                if lowestL > xPosPlayer-self.proj_fig[i][0]:
+                    lowestL = xPosPlayer-self.proj_fig[i][0]
+            else:
+                lowestR = 0
+
+        if lowestR != 0:
+            enemyProjectileRight += 1/(lowestR**2)*64
+            enemyProjectileLeft += 1/(lowestL**2)*64
+        else:
+            enemyProjectileLeft = 128
+            enemyProjectileRight = 128
+
+
+        return additionalReward, [nearestShipLeft, nearestShipRight, shipAbove, enemyProjectileLeft, enemyProjectileRight]
+
+    def get5StatePos(self):
+        additionalReward = 0
+
+        # Checking side of nearest ship
+        nearestShipLeft = 0
+        nearestShipRight = 0
+
+        xPosShips = []
+        xPosPlayer = self.ship_figures[0][0]
+        for i in self.enemy_fig:
+            xPosShips.append(i[0])
+        
+        lowest = 50000 # Some high number as default
+        for i in xPosShips:
+            if abs(i - xPosPlayer) < lowest:
+                lowest = abs(i - xPosPlayer)
+                if i - xPosPlayer < 0:
+                    nearestShipLeft = i
+                else:
+                    nearestShipRight = i
+        
+        # Check for ships above
+        shipAbove = 0
+        for i in range(len(self.enemy_fig)):
+            if abs(xPosPlayer-self.enemy_fig[i][0]) < 4:
+                shipAbove = 1
+        
+        # Reward agent if he shoots when below an enemy
+        if (shipAbove == 1) and (self.action[1] == True):
+            additionalReward += self.reward_ship_targeted
+        elif (shipAbove == 0) and (self.action[1] == True):
+            additionalReward += self.reward_nothing_targeted
+
+        # Checks if an enemy projectile is above the ship
+        enemyProjectileLeft = 0
+        enemyProjectileRight = 0
+        lowestL = 50000 # Some high number as default
+        lowestR = 50000 # Some high number as default
+        for i in range(len(self.proj_fig)):
+            if (xPosPlayer-self.proj_fig[i][0] < 0) and (self.proj_fig[i][2] == 6):
+                if lowestR > self.proj_fig[i][0]-xPosPlayer:
+                    lowestR = self.proj_fig[i][0]-xPosPlayer
+            elif (xPosPlayer-self.proj_fig[i][0] > 0) and (self.proj_fig[i][2] == 6):
+                if lowestL > xPosPlayer-self.proj_fig[i][0]:
+                    lowestL = xPosPlayer-self.proj_fig[i][0]
+            else:
+                lowestR = 0
+
+        if lowestR != 0:
+            enemyProjectileRight += 1/(lowestR**2)*64
+            enemyProjectileLeft += 1/(lowestL**2)*64
+        else:
+            enemyProjectileLeft = 128
+            enemyProjectileRight = 128
+
+        return additionalReward, [xPosPlayer, nearestShipLeft, nearestShipRight, enemyProjectileLeft, enemyProjectileRight]
+
     def step(self, action):
         
         reward = 0
@@ -763,28 +885,29 @@ class space_invader:
         # self.state gets reset, information stored in the figures list
         self.reset()
         # looks for movement 
-        if self.ship_figures[0][2] == 1: # ship
-            #self.figures_set([figures[i][0],figures[i][1]],1)
-            if action[0] == 'L': # if left key is pressed
-                # checks if its possible to move the ship in this direction
-                if self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1) == False:
-                    self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
-                else: # if its possible, move
-                    self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1)
-                if self.debugging:
-                    print('Ship moved left')
-            elif action[0] == 'R': # if right key is pressed
-                # checks if its possible to move the ship in this direction
-                if self.figures_set([self.ship_figures[0][0] + 2 ,self.ship_figures[0][1]],1) == False:
-                    self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
-                else: # if its possible, move
-                    self.figures_set([self.ship_figures[0][0]+2 ,self.ship_figures[0][1]],1)
-                if self.debugging:
-                    print('Ship moved right')
-            else: # if no movement key is pressed , no movement, only situation where ship can fire
-                self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]],1)
-            if action[1] == True: # if up key is pressed, fire
-                self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]-5],5)
+        if len(self.ship_figures) != 0:
+            if self.ship_figures[0][2] == 1: # ship
+                #self.figures_set([figures[i][0],figures[i][1]],1)
+                if action[0] == 'L': # if left key is pressed
+                    # checks if its possible to move the ship in this direction
+                    if self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1) == False:
+                        self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
+                    else: # if its possible, move
+                        self.figures_set([self.ship_figures[0][0] - 2 ,self.ship_figures[0][1]],1)
+                    if self.debugging:
+                        print('Ship moved left')
+                elif action[0] == 'R': # if right key is pressed
+                    # checks if its possible to move the ship in this direction
+                    if self.figures_set([self.ship_figures[0][0] + 2 ,self.ship_figures[0][1]],1) == False:
+                        self.figures_set([self.ship_figures[0][0] ,self.ship_figures[0][1]],1)
+                    else: # if its possible, move
+                        self.figures_set([self.ship_figures[0][0]+2 ,self.ship_figures[0][1]],1)
+                    if self.debugging:
+                        print('Ship moved right')
+                else: # if no movement key is pressed , no movement, only situation where ship can fire
+                    self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]],1)
+                if action[1] == True: # if up key is pressed, fire
+                    self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]-5],5)
         # describes enemy behaviour, uses enemy_action to determine if they fire or not
         self.count[0] +=1
         speed = 150-self.score[4]
@@ -961,7 +1084,23 @@ class space_invader:
             self.check_enemy == self.enemy_fig
             print('enemies: ',str(self.enemy_fig))'''
         
-        additionalReward, returnState = self.get4State()
+        if len(self.ship_figures) != 0:
+            additionalReward, returnState = self.get5State()
+
+            if self.prevPos == self.ship_figures[0]:
+                self.prevPosCounter += 1
+            else:
+                self.prevPosCounter = 0
+
+            if self.prevPosCounter >= 500:
+                # Agent did not move, let's punish him
+                reward += self.reward_no_move
+            
+            self.prevPos = self.ship_figures[0]
+        else:
+            additionalReward, returnState = 0, [0]*self.variables[3]
+            self.health = 0
+            print("Ship figures empty!")
         
         reward += additionalReward
 
