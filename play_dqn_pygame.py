@@ -696,7 +696,8 @@ class play_dqn_pygame:
             # make next step
             reward, returnState = self.spaceInvader.step(self.action)
 
-            #print("PosPl: {:5}, PosEnL: {:5}, PosEnR: {:5}, L: {:1.3f}, R: {:1.3f}".format(returnState[0],returnState[1],returnState[2],returnState[3],returnState[4]))
+            print("PosPl: {:5}, PosEnL: {:5}, PosEnR: {:5}, L: {:1.3f}, R: {:1.3f}".format(returnState[0],returnState[1],returnState[2],returnState[3],returnState[4]))
+            print("Reward: {:5.1f}".format(reward))
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):
              #   print(self.spaceInvader.state[i])
