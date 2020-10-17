@@ -1099,6 +1099,7 @@ class space_invader:
             self.prevPos = self.ship_figures[0]
         else:
             additionalReward, returnState = 0, [0]*self.variables[3]
+            self.health = 0
             print("Ship figures empty!")
         
         reward += additionalReward
