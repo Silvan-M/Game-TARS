@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 1
+verbose = 0
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -146,20 +146,21 @@ class train_dqn():
         rewards = 0
         iter = 0
         done = False
-        observations = np.float32(np.asarray([0]*self.num_states))
-        #observations = np.float32(np.asarray(environment.replacer()).flatten())
+        observations = state
+        observations = np.asarray(observations)
+        observations = observations.flatten()
         prev_observations = observations
         losses = list()
-        nr = 0
+        observationBatch = [observations]*self.TrainNet.batch_size
         while not done: # observes until game is done 
             
             inp = observations
             if self.TrainNet.batch_size > 1:
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
-            nr += 1
 
             action = self.TrainNet.get_action(np.array(inp), 0) # TrainNet determines favorable action
+
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
@@ -170,20 +171,17 @@ class train_dqn():
             if check_action == convAction: 
                 check_action_count += 1
             else:
-                check_action_count = 0
                 check_action = convAction 
             if check_action_count > 500:
-                reward += environment.reward_ship_destroyed*2
+                rewards =  reward -10000
                 check_action_count = 0
-                if verbose > 1:
-                    print('killed by nothingness',convAction)
+                print('killed by nothingness',convAction)
 
                 done = True
             prev_observations = observations # saves observations
             reward, observations = environment.step(convAction)
-
-            observations = np.asarray(observations).flatten()
-
+            observations = np.asarray(observations)
+            observations = observations.flatten()
             if environment.health <= 0:
                 done = True
                 reward = environment.reward_ship_destroyed
@@ -205,9 +203,11 @@ class train_dqn():
                 if done:
                     print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 2:
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 3:
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
+                for row in range(0, environment.field_size):
+                    print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
+                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}\n".format(rewards,str(environment.score[3]),str(done)))
         return rewards, mean(losses), environment.score[3] #returns rewards and average
 
             
@@ -230,7 +230,6 @@ class train_dqn():
         # min_experiences: sets the start of the agent learning
         # batch_size: amount of data processed at once
         # alpha: learning rate, defines how drastically it changes weights
-        self.num_states = num_states
         
         self.TrainNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
         self.TargetNet = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
