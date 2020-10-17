@@ -432,6 +432,8 @@ class tictactoe:
 class space_invader:
     def __init__(self):
         self.illegalcount = 0
+        self.prevPos = 0
+        self.prevPosCounter = 0
         # Important field size variable
         # Variables
         self.lenState = 150
@@ -509,7 +511,7 @@ class space_invader:
         self.action = ['N',False] # R = move right, L = move Left, True/False = Fire
         self.health = 3
         self.figures = [] # list with all object in the game [object, x_center, y_center]
-        self.batch_size = 2
+        self.batch_size = 1
         
         # first round
         self.figures_set([65,55], 1)
@@ -540,14 +542,16 @@ class space_invader:
         self.check = 0
         self.check_enemy = []
         self.message = None
+
         # Space invaders specific rewards
-        self.reward_enemy_lvl_destroyed = 2000 # Ship destroys enemy 
+        self.reward_enemy_lvl_destroyed = 1500 # Ship destroys enemy 
         self.reward_all_enemies_destroyed = 2500 # Ship destroys all enemies
-        self.reward_ship_hit = -750 # Ship loses one life
-        self.reward_ship_destroyed = -1000 # Ship gets destroyed
+        self.reward_ship_hit = -1000 # Ship loses one life
+        self.reward_ship_destroyed = -1250 # Ship gets destroyed
         self.reward_time_up = -3000 # Ship dies because time is up and enemies are up close
         self.reward_ship_targeted = 500 # Ship shoots when below an enemy
         self.reward_nothing_targeted = -50 # Ship shoots into oblivion
+        self.reward_no_move = -500 # Ship does not move after 500 moves
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
         # States:
@@ -844,7 +848,6 @@ class space_invader:
             enemyProjectileLeft = 128
             enemyProjectileRight = 128
 
-
         return additionalReward, [xPosPlayer, nearestShipLeft, nearestShipRight, enemyProjectileLeft, enemyProjectileRight]
 
     def step(self, action):
@@ -905,8 +908,6 @@ class space_invader:
                     self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]],1)
                 if action[1] == True: # if up key is pressed, fire
                     self.figures_set([self.ship_figures[0][0],self.ship_figures[0][1]-5],5)
-        else:
-            print("Ship figures empty!")
         # describes enemy behaviour, uses enemy_action to determine if they fire or not
         self.count[0] +=1
         speed = 150-self.score[4]
@@ -1085,8 +1086,19 @@ class space_invader:
         
         if len(self.ship_figures) != 0:
             additionalReward, returnState = self.get5State()
+
+            if self.prevPos == self.ship_figures[0]:
+                self.prevPosCounter += 1
+            else:
+                self.prevPosCounter = 0
+
+            if self.prevPosCounter >= 500:
+                # Agent did not move, let's punish him
+                reward += self.reward_no_move
+            
+            self.prevPos = self.ship_figures[0]
         else:
-            additionalReward, returnState = 0, [0]*self.num_state
+            additionalReward, returnState = 0, [0]*self.variables[3]
             print("Ship figures empty!")
         
         reward += additionalReward

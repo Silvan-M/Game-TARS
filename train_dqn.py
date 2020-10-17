@@ -205,7 +205,7 @@ class train_dqn():
 
             if verbose == 1:
                 if done:
-                    print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
+                    print("Reward: {0: 8.0f} | Score: {1:7} | Kills: {2}".format(rewards,str(environment.score[3]),str(environment.score[0]+environment.score[1]+environment.score[2])))
             elif verbose == 2:
                 print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
             elif verbose == 3:
