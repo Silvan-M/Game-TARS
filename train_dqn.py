@@ -167,13 +167,15 @@ class train_dqn():
                 convAction = ['R', False]
             elif action == 2:
                 convAction = ['N', True]
+            elif action == 3:
+                convAction = ['N', False]
             if check_action == convAction: 
                 check_action_count += 1
             else:
                 check_action_count = 0
                 check_action = convAction 
             if check_action_count > 500:
-                reward += environment.reward_ship_destroyed*2
+                reward += environment.reward_times_up
                 check_action_count = 0
                 if verbose > 1:
                     print('killed by nothingness',convAction)
@@ -203,11 +205,11 @@ class train_dqn():
 
             if verbose == 1:
                 if done:
-                    print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
+                    print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
             elif verbose == 2:
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
+                print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
             elif verbose == 3:
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
+                print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
         return rewards, mean(losses), environment.score[3] #returns rewards and average
 
             

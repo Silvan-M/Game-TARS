@@ -695,6 +695,8 @@ class play_dqn_pygame:
             #print(self.spaceInvader.print())
             # make next step
             reward, returnState = self.spaceInvader.step(self.action)
+
+            print("PosPl: {:5}, PosEnL: {:5}, PosEnR: {:5}, L: {:1.3f}, R: {:1.3f}".format(returnState[0],returnState[1],returnState[2],returnState[3],returnState[4]))
             #print('step called')
             #for i in range(len(self.spaceInvader.state)):
              #   print(self.spaceInvader.state[i])
@@ -726,8 +728,8 @@ class play_dqn_pygame:
 
                 # Initialize DQN
                 state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = self.spaceInvader.variables
-                self.state = [0,0,0,0]
-                self.prevState = [0,0,0,0]
+                self.state = [0]*num_states
+                self.prevState = [0]*num_states
 
                 if not self.modelLoaded:
                     self.spaceinvaderDQN = dqn.DQN(num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, alpha)
@@ -744,7 +746,6 @@ class play_dqn_pygame:
             if self.modelLoaded == False:
                 if model_name:
                     directory = "spaceinvader/models/"+model_name+"/TrainNet/"
-                    print("Loading: ",directory)
                     self.spaceinvaderDQN.model = tf.saved_model.load(directory)
                     self.first = False
                     self.modelLoaded = True
@@ -772,6 +773,8 @@ class play_dqn_pygame:
                 convAction = ['R', False]
             elif action == 2:
                 convAction = ['N', True]
+            elif action == 3:
+                convAction = ['N', False]
 
             self.prevState = self.state
             _, self.state = self.spaceInvader.step(convAction)
@@ -781,7 +784,7 @@ class play_dqn_pygame:
         self.reallyFirst = True
         self.screen.fill(self.Black)
         msg = "Score: "+str(self.score[3])
-        self.addText(msg, self.blanka, 100, self.White, 400, 200)
+        self.addText(msg, self.blanka, 75, self.White, 400, 200)
         self.addButton("Play again", 400, 300, 400, 40, self.previousGame)
         self.addButton("Menu", 400, 400, 400, 40, self.back)
 
@@ -922,7 +925,7 @@ class play_dqn_pygame:
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
         self.addButton("Tic Tac Toe", 400, 300, 400, 40, self.ticTacToeMenu)
         self.addButton('Snake', 400, 350, 400, 40, self.snakeMenu)
-        self.addButton("Space Invaders b", 400, 400, 400, 40, self.spaceInvaderMenu)
+        self.addButton("Space Invaders", 400, 400, 400, 40, self.spaceInvaderMenu)
 
     def back(self):
         self.first = True
