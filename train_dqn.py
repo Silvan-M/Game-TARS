@@ -175,11 +175,7 @@ class train_dqn():
             else:
                 check_action = convAction 
             if check_action_count > 500:
-<<<<<<< HEAD
-                rewards =  reward -10000
-=======
                 reward += environment.reward_time_up
->>>>>>> e6e67fb2bfd6a03dbfc8db82ab3d3954d7a958fd
                 check_action_count = 0
                 print('killed by nothingness',convAction)
 
@@ -209,17 +205,9 @@ class train_dqn():
                 if done:
                     print("Reward: {0: 8.0f} | Score: {1:7} | Kills: {2}".format(rewards,str(environment.score[3]),str(environment.score[0]+environment.score[1]+environment.score[2])))
             elif verbose == 2:
-<<<<<<< HEAD
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}".format(rewards,str(environment.score[3]),str(done)))
-            elif verbose == 3:
-                for row in range(0, environment.field_size):
-                    print(environment.field[(row*environment.field_size):(row*environment.field_size+environment.field_size)])
-                print("Reward: {0: 3.1f} | Score: {1:5} | Done: {2}\n".format(rewards,str(environment.score[3]),str(done)))
-=======
                 print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
             elif verbose == 3:
                 print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
->>>>>>> e6e67fb2bfd6a03dbfc8db82ab3d3954d7a958fd
         return rewards, mean(losses), environment.score[3] #returns rewards and average
 
             
@@ -229,7 +217,7 @@ class train_dqn():
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["spaceinvaders"]
+        game = games["tictactoe"]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -263,7 +251,7 @@ class train_dqn():
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
-        log_interval = game[5]
+        log_interval = 1
 
         # For storing logs and model afterwards
         current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")

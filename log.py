@@ -35,7 +35,7 @@ def plotTicTacToe(log_path):
     elif len(data)*log_interval >= 50000:
         intvl = 10
         print("Automatically swichted to avg. every 10th value")
-    
+    intvl = 1
     amount_datapoints = 8
     avg_data = [0]*amount_datapoints
 
