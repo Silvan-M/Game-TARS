@@ -692,15 +692,15 @@ class play_dqn_pygame:
                     self.shoot_buffer = 0  
                     self.action = ['N', True]
         if self.buffer % 1 == 0: 
-            #print(self.spaceInvader.print())
+            # print(self.spaceInvader.print())
             # make next step
             reward, returnState = self.spaceInvader.step(self.action)
 
-            print("PosPl: {:5}, PosEnL: {:5}, PosEnR: {:5}, L: {:1.3f}, R: {:1.3f}".format(returnState[0],returnState[1],returnState[2],returnState[3],returnState[4]))
-            print("Reward: {:5.1f}".format(reward))
-            #print('step called')
-            #for i in range(len(self.spaceInvader.state)):
-             #   print(self.spaceInvader.state[i])
+            # print("PosPl: {:5}, PosEnL: {:5}, PosEnR: {:5}, L: {:1.3f}, R: {:1.3f}".format(returnState[0],returnState[1],returnState[2],returnState[3],returnState[4]))
+            # print("Reward: {:5.1f}".format(reward))
+            # print('step called')
+            # for i in range(len(self.spaceInvader.state)):
+            #    print(self.spaceInvader.state[i])
 
     def spaceInvaderAI(self):
         if self.first:
@@ -767,14 +767,17 @@ class play_dqn_pygame:
                 inp = [np.asarray(self.prevState).flatten(), np.asarray(self.state).flatten()]
 
             action = self.spaceinvaderDQN.get_action(np.array(inp), 0) # TrainNet determines favorable action
-            
+
+            self.shoot_buffer += 1
             convAction = ['N', False]
             if action == 0:
                 convAction = ['L', False]
             elif action == 1:
                 convAction = ['R', False]
             elif action == 2:
-                convAction = ['N', True]
+                if self.shoot_buffer >= 5:
+                    convAction = ['N', True]
+                    self.shoot_buffer = 0
             elif action == 3:
                 convAction = ['N', False]
 

@@ -549,10 +549,11 @@ class space_invader:
         self.reward_ship_hit = -2000 # Ship loses one life
         self.reward_ship_destroyed = -3000 # Ship gets destroyed
         self.reward_time_up = -5000 # Ship dies because time is up and enemies are up close
-        self.reward_ship_targeted = 500 # Ship shoots when below an enemy
+        self.reward_ship_targeted = 250 # Ship shoots when below an enemy
         self.reward_nothing_targeted = -50 # Ship shoots into oblivion
         self.reward_no_move = -500 # Ship does not move after 500 moves
-        self.reward_side_penalty = -250 # Penalty if ship stays on one side (should stop tactics of not doing anything)
+        self.reward_no_move_but_incoming = -1000 # Ship does not move if missile incoming
+        self.reward_side_penalty = -500 # Penalty if ship stays on one side (should stop tactics of not doing anything)
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
         # States:
@@ -791,6 +792,14 @@ class space_invader:
             enemyProjectileLeft = 128
             enemyProjectileRight = 128
 
+        # Checks if an enemy projectile is above the ship, if it stays still punish agent
+        enemyProjectileAbove = False
+        for i in range(len(self.proj_fig)):
+            if (abs(xPosPlayer-self.proj_fig[i][0]) < 8) and (self.proj_fig[i][2] == 6):
+                enemyProjectileAbove = True
+        if enemyProjectileAbove:
+            if self.action[0] == 'N':
+                additionalReward += self.reward_no_move_but_incoming
 
         return additionalReward, [nearestShipLeft, nearestShipRight, shipAbove, enemyProjectileLeft, enemyProjectileRight]
 
