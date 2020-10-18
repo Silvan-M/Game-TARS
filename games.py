@@ -1097,6 +1097,10 @@ class space_invader:
                 reward += self.reward_no_move
             
             self.prevPos = self.ship_figures[0]
+
+            # Side Reward
+            if (self.ship_figures[0][0] == 9) or (self.ship_figures[0][0] == 141):
+                reward += -1000
         else:
             additionalReward, returnState = 0, [0]*self.variables[3]
             self.health = 0
