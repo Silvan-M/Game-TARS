@@ -13,6 +13,7 @@ reg_mode = 'notnormal' #normal
 predict = False # if the prediction should be plottet
 range_predict = 10 # range of the prediction
 reg_func_inp =[1000000]
+save_file = False
 ################################################################
 def color_brightener(color, dim =0): #brightens the color
     first = color[1:3]
@@ -140,6 +141,7 @@ plt.title(str(name))
 plt.xlabel("Episodes")
 plt.ylabel("Value")
 plt.legend(loc="upper right",fontsize = 'x-small')
-#plt.savefig('fig.'+file_name+".pdf")
+if safe_file:
+    plt.savefig('fig.'+name+".pdf")
 plt.show()
 
