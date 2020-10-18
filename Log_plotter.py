@@ -3,20 +3,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 # settings #####################################################
 file_name = 'test.txt' #input filename
+name = 'test' # name the plot
 label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose_count', 'illegal_moves'] # all saved data in csv file
-plot =['win_count','lose_count'] # put in here what should be processed
+plot =[ 'win_count', 'lose_count'] # put in here what should be processed
 color_mode = 'cyanred' #choose from gray, blue, red, yellow, cyanred, gremag, yelblue
 regression = True # make a regression 
 reg_dim = 1 # dimension of regression
+reg_mode = 'notnormal' #normal
+reg_func_inp =[1000000]
 ################################################################
 def color_brightener(color): #brightens the color
     first = color[1:3]
     snd = color[3:5]
     thrd = color[5:7]
     # splits input color into 3 subparts each in hex form
-    first = hex(int(first,16) + 50)
-    snd = hex(int(snd,16) + 50)
-    thrd = hex(int(thrd,16) + 50)
+    if int(first,16) > 204 or int(snd,16) > 204 or int(thrd,16) > 204:
+        return(color)
+    else:
+        first = hex(int(first,16) + 50)
+        snd = hex(int(snd,16) + 50)
+        thrd = hex(int(thrd,16) + 50)
     # convert all number to int with int(hex_number,16) and add 50 in decimal
     hex_number ='#'+ str(first[2:])+ str(snd[2:])+ str(thrd[2:])
     # add all subparts together
@@ -66,7 +72,6 @@ with open('test.txt') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=';')
     line_count = 0
     for row in csv_reader:
-        print(row)
         line_count += 1
         amount_of_rows = len(row)
         for i in range(len(row)):
@@ -83,15 +88,37 @@ for q in range(len(plot)):
     i = label.index(plot[q])
     for y in range(line_count):
         plot_data.append(float(whole_data[y][i]))
-    plt.plot(x,plot_data ,color = color[q],label = label[i],linewidth = 0.75)
+    plt.plot(x,plot_data ,color = color[q],label = label[i],linewidth = 1.2)
     #plt.ylim(0,5)
     if regression:
         dim = reg_dim
         coef = np.polyfit(x,plot_data,dim)
         poly1d_fn = np.poly1d(coef) 
-        plt.plot(x, poly1d_fn(x), color = color_brightener(color[q]), label = "Avg. Incr. = "+str(round(coef[0]*len(x)*100,3))+"%",linewidth = 0.75, linestyle = (0,(5,5)))
+
+        if dim == 1 and reg_mode == 'normal':
+            plt.plot(x, poly1d_fn(x), color = color_brightener(color[q]), label = "Avg. Incr. = "+str(round(coef[0]*len(x)*100,3))+"%",linewidth = 1.2, linestyle = (0,(5,5)))
+        else:
+            function = 'f(x) = '
+            for i in range(len(coef)):
+                h = len(coef) -i-1
+                if h == 0:
+                    function = function +str(round(coef[i],4))
+                elif h == 1:
+                    function = function + str(round(coef[i],4)) + ' x +'
+                else:
+                    function = function + str(round(coef[i],4)) + ' x^'+str(h)+'+'
+            if dim > 4:
+                function =f'Regression function of {plot[q]}'
+
+            plt.plot(x, poly1d_fn(x), color = color_brightener(color[q]), label = function,linewidth = 2, linestyle = (0,(5,5)))
+            print(f'The regression function is: {function}')
+            out = poly1d_fn(reg_func_inp)
+            for i in range(len(reg_func_inp)):
+                print(f'Prediction for {reg_func_inp[i]} is {out[i]}')
+                
+
     plot_data=[]
-plt.title("File: "+str(file_name))
+plt.title(str(name))
 plt.xlabel("Episodes")
 plt.ylabel("Value")
 plt.legend(loc="upper right",fontsize = 'x-small')
