@@ -544,14 +544,15 @@ class space_invader:
         self.message = None
 
         # Space invaders specific rewards
-        self.reward_enemy_lvl_destroyed = 1500 # Ship destroys enemy 
+        self.reward_enemy_lvl_destroyed = 1000 # Ship destroys enemy 
         self.reward_all_enemies_destroyed = 2500 # Ship destroys all enemies
-        self.reward_ship_hit = -1000 # Ship loses one life
-        self.reward_ship_destroyed = -1250 # Ship gets destroyed
-        self.reward_time_up = -3000 # Ship dies because time is up and enemies are up close
+        self.reward_ship_hit = -2000 # Ship loses one life
+        self.reward_ship_destroyed = -3000 # Ship gets destroyed
+        self.reward_time_up = -5000 # Ship dies because time is up and enemies are up close
         self.reward_ship_targeted = 500 # Ship shoots when below an enemy
         self.reward_nothing_targeted = -50 # Ship shoots into oblivion
         self.reward_no_move = -500 # Ship does not move after 500 moves
+        self.reward_side_penalty = -250 # Penalty if ship stays on one side (should stop tactics of not doing anything)
         self.score = [0,0,0,0,0] #lvl1, lvl2, lvl3, score, wave
         self.safe = []
         # States:
@@ -1100,7 +1101,7 @@ class space_invader:
 
             # Side Reward
             if (self.ship_figures[0][0] == 9) or (self.ship_figures[0][0] == 141):
-                reward += -1000
+                reward += self.reward_side_penalty
         else:
             additionalReward, returnState = 0, [0]*self.variables[3]
             self.health = 0

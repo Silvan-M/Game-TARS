@@ -758,6 +758,7 @@ class play_dqn_pygame:
         else:
             self.drawSpaceInvader()
             self.addButton("Abort and Retry", 680 ,570, 200, 30, self.abortAndRetry)
+            self.addButton("Back", 70 ,570, 100, 30, self.back)
 
             inp = self.state
 
