@@ -8,21 +8,31 @@ label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose
 plot =[ 'win_count', 'lose_count'] # put in here what should be processed
 color_mode = 'cyanred' #choose from gray, blue, red, yellow, cyanred, gremag, yelblue
 regression = True # make a regression 
-reg_dim = 1 # dimension of regression
+reg_dim = 14 # dimension of regression
 reg_mode = 'notnormal' #normal
+predict = False # if the prediction should be plottet
+range_predict = 10 # range of the prediction
 reg_func_inp =[1000000]
 ################################################################
-def color_brightener(color): #brightens the color
+def color_brightener(color, dim =0): #brightens the color
     first = color[1:3]
     snd = color[3:5]
     thrd = color[5:7]
     # splits input color into 3 subparts each in hex form
-    if int(first,16) > 204 or int(snd,16) > 204 or int(thrd,16) > 204:
-        return(color)
+    if dim == 0:
+        if int(first,16) > 204 or int(snd,16) > 204 or int(thrd,16) > 204:
+            return(color)
+        else:
+            first = hex(int(first,16) + 50)
+            snd = hex(int(snd,16) + 50)
+            thrd = hex(int(thrd,16) + 50)
     else:
-        first = hex(int(first,16) + 50)
-        snd = hex(int(snd,16) + 50)
-        thrd = hex(int(thrd,16) + 50)
+        if int(first,16) > 154 or int(snd,16) > 154 or int(thrd,16) > 154:
+            return(color)
+        else:
+            first = hex(int(first,16) + 100)
+            snd = hex(int(snd,16) + 100)
+            thrd = hex(int(thrd,16) + 100)
     # convert all number to int with int(hex_number,16) and add 50 in decimal
     hex_number ='#'+ str(first[2:])+ str(snd[2:])+ str(thrd[2:])
     # add all subparts together
@@ -111,6 +121,14 @@ for q in range(len(plot)):
                 function =f'Regression function of {plot[q]}'
 
             plt.plot(x, poly1d_fn(x), color = color_brightener(color[q]), label = function,linewidth = 2, linestyle = (0,(5,5)))
+            if predict:
+                step = float(whole_data[3][0])-float(whole_data[2][0])
+                new_x = []
+                end = float(whole_data[-1][0])
+                for i in range(range_predict):
+                    new_x.append(end + i*step)
+                plt.plot(new_x, poly1d_fn(new_x), color = color_brightener(color[q],dim=1) , label = function+'(prediction)',linewidth = 2, linestyle = (0,(5,5)))
+                
             print(f'The regression function is: {function}')
             out = poly1d_fn(reg_func_inp)
             for i in range(len(reg_func_inp)):
