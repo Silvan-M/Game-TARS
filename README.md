@@ -8,6 +8,7 @@ Make sure you have following libraries installed:
 - Numpy
 - TensorFlow
 - Pygame
+
 Then simply clone the project.
 
 # Training
