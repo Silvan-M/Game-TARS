@@ -1,4 +1,4 @@
-![alt text](https://github.com/Silvan-M/Game-TARS/blob/master/resources/title.png?raw=true)
+![Game-TARS](https://github.com/Silvan-M/Game-TARS/blob/master/resources/title.png?raw=true)
 
 # Game-TARS
 The goal of this project is to train a deep learning AI to play games using Deep-Q-Learning.
@@ -9,7 +9,11 @@ Make sure you have following libraries installed:
 - TensorFlow
 - Pygame
 
-Firstly launch `train_dqn.py` to train a AI or `train_dqn_vs_dqn.py` to train AI vs AI.
+# Training
+There are already pretrained models which we created for you. If you don't want to go through the hussle of training your own, skip this part.
+To train a game regurarly go into the main folder and launch `train_dqn.py`. Then you can type in one of our games ("tictactoe", "snake" or "spaceinvader") followed by the amount of games you want to train.
+You can also launch `train_dqn_vs_dqn.py` to train AI vs AI (only available for TicTacToe).
 
-Then launch `play_dqn_pygame.py` to check out our games in a sleek user interface!
-
+# Playing
+To play any of our games go into the main folder and launch `play_dqn_pygame.py`. A user interface will pop up and you can choose one of three games. 
+You are able to choose to let the AI play or you can try the game yourself. When choosing AI you will be asked for a model, choose a model you trained earlier or use our pretrained model for the best experience.
