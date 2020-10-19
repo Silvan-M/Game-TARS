@@ -1128,10 +1128,10 @@ class space_invader:
 class snake:
     def __init__(self):
         self.illegalcount = 0
-        self.mode = 2 # Mode 0: 12 inputs, see below; Mode 1: input the complete field; Mode 2: Snake head centered
+        self.mode = 0 # Mode 0: 12 inputs, see below; Mode 1: input the complete field; Mode 2: Snake head centered
 
         # Important field size variable
-        self.field_size = 10 # field_size x field_size snake grid
+        self.field_size = 20 # field_size x field_size snake grid
 
         # Variables
         if self.mode == 0:
