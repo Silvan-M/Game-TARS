@@ -16,4 +16,4 @@ You can also launch `train_dqn_vs_dqn.py` to train AI vs AI (only available for 
 
 # Playing
 To play any of our games go into the main folder and launch `play_dqn_pygame.py`. A user interface will pop up and you can choose one of three games. 
-You are able to choose to let the AI play or you can try the game yourself. When choosing AI you will be asked for a model, choose a model you trained earlier or use our pretrained model for the best experience.
+You are able to choose to let the AI play or you can try the game yourself. When choosing AI you will be asked for a model. Choose a model you trained earlier or use our pretrained model for the best experience.
