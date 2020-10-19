@@ -376,7 +376,10 @@ class play_dqn_pygame:
         self.drawBoard()
 
         if self.activePlayer == 0:
-            action = mma.GetMove(self.state, False) # MinMax determines favorable action
+            if self.state == [0]*9:
+                action = 2
+            else:
+                action = mma.GetMove(self.state, False) # MinMax determines favorable action
             
         
         if action != -1:
