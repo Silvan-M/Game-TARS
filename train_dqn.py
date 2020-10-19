@@ -17,7 +17,7 @@ import dqn as dqn
 global MMA
 MMA = True # True = Random, MinMaxAlg = False
 # Turn on verbose logging, 0: No verbose, 1: Rough verbose, 2: Step-by-step-verbose, 3: Step-by-step-detailed-verbose
-verbose = 1
+verbose = 0
 
 class train_dqn():
     def play_tictactoe(self, state, environment, epsilon, copy_step):
@@ -216,8 +216,24 @@ class train_dqn():
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
         games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
         
+        game = "useInput"
+        
+        while game == "useInput":
+            userInp = input("Which game do you want to play?\n")
+            if userInp in games.keys():
+                game = userInp
+            elif userInp == "0":
+                game = "tictactoe"
+            elif userInp == "1":
+                game = "snake"
+            elif userInp == "2":
+                game = "spaceinvaders"
+            else:
+                print("Not recognized input, please try again")
+        print("Training "+game)
+        
         # Here you can choose which of the games declared above you want to train, feel free to change!
-        game = games["spaceinvaders"]
+        game = games[game]
 
         environment = game[1]()
         state, gamma, copy_step, num_states, num_actions, hidden_units, max_experiences, min_experiences, batch_size, alpha, epsilon, min_epsilon, decay = environment.variables
@@ -248,8 +264,15 @@ class train_dqn():
             self.TrainNet.model = tf.saved_model.load(model_path+"/TrainNet")
             self.TargetNet.model = tf.saved_model.load(model_path+"/TargetNet")
             
+        N = 5000
+        while True:
+            try:
+                N = int(input("How many episodes do you want to train?\n"))
+                break
+            except ValueError:
+                pass
+            print("Invalid input!")
 
-        N = int(input("How many episodes do you want to train?\n"))
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
