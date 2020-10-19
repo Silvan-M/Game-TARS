@@ -8,6 +8,7 @@ Make sure you have following libraries installed:
 - Numpy
 - TensorFlow
 - Pygame
+Then simply clone the project.
 
 # Training
 There are already pretrained models which we created for you. If you don't want to go through the hussle of training your own, skip this part.
