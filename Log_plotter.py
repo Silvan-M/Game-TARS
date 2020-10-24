@@ -5,11 +5,11 @@ import numpy as np
 file_name = 'test.txt' #input filename
 name = 'test' # name the plot
 label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose_count', 'illegal_moves'] # all saved data in csv file
-plot =[ 'win_count', 'lose_count'] # put in here what should be processed
+plot = ['total_reward'] # put in here what should be processed
 color_mode = 'cyanred' #choose from gray, blue, red, yellow, cyanred, gremag, yelblue
 regression = True # make a regression 
 reg_dim = 14 # dimension of regression
-reg_mode = 'notnormal' #normal
+reg_mode = 'normal' #normal
 predict = False # if the prediction should be plottet
 range_predict = 10 # range of the prediction
 reg_func_inp =[1000000]
@@ -78,7 +78,7 @@ row_data = []
 amount_of_rows = 0
 whole_data = []
 plot_data = []
-with open('test.txt') as csv_file:
+with open(file_name) as csv_file:
     # read csv file
     csv_reader = csv.reader(csv_file, delimiter=';')
     line_count = 0
@@ -98,6 +98,8 @@ plt.style.use('fivethirtyeight')
 for q in range(len(plot)):
     i = label.index(plot[q])
     for y in range(line_count):
+        print(len(whole_data))
+        print("y,i: ",y,i)
         plot_data.append(float(whole_data[y][i]))
     plt.plot(x,plot_data ,color = color[q],label = label[i],linewidth = 1.2)
     #plt.ylim(0,5)
@@ -141,7 +143,7 @@ plt.title(str(name))
 plt.xlabel("Episodes")
 plt.ylabel("Value")
 plt.legend(loc="upper right",fontsize = 'x-small')
-if safe_file:
+if save_file:
     plt.savefig('fig.'+name+".pdf")
 plt.show()
 
