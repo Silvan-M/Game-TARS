@@ -1,0 +1,22 @@
+{
+"compilerOptions": {
+  "module": "commonjs",
+  "noImplicitAny": true,
+  "removeComments": true,
+  "preserveConstEnums": true,
+  "sourceMap": true
+},
+"files": [
+  "dqn.py",
+  "floodfill.py",
+  "Log_plotter.py",
+  "games.py",
+  "log.py",
+  "min_max_alg.py",
+  "play_dqn_cmdline.py",
+  "play_dqn.py",
+  "train_dqn_vs_dqn.py",
+  "train_dqn.py",
+  "commandLineParser.ts",
+]
+}
