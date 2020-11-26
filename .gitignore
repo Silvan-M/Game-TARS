@@ -8,28 +8,35 @@ __pycache__/
 tictactoe/figures/*
 snake/figures/*
 spaceinvader/figures/*
+connectfour/figures/*
 
 tictactoe/logs/*
 snake/logs/*
 spaceinvader/logs/*
+connectfour/logs/*
 
 tictactoe/models/*
 snake/models/*
 spaceinvader/models/*
+connectfour/models/*
 
 # exception to the rule 
 !tictactoe/figures/.keep
 !snake/figures/.keep
 !spaceinvader/figures/.keep
+!connectfour/figures/.keep
 
 !tictactoe/logs/.keep
 !snake/logs/.keep
 !spaceinvader/logs/.keep
+!connectfour/logs/.keep
 
 !tictactoe/models/.keep
 !snake/models/.keep
 !spaceinvader/models/.keep
+!connectfour/models/.keep
 
 !tictactoe/models/pretrained_model
 !snake/models/pretrained_model
 !spaceinvader/models/pretrained_model
+!connectfour/models/pretrained_model
