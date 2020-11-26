@@ -2,30 +2,24 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 # settings #####################################################
-<<<<<<< HEAD
-file_name = 'C:/Users/41763/Desktop/logs/SpaceInvadersFirstTrainingN500.txt' #input filename
-name = 'Snake - 5000 Ep - 2020.10.21' # name the plot
+file_name = 'example4.txt' #input filename
+name = 'Example - 1000 EP - 2020.10.24' # name the plot
+# label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose_count', 'illegal_moves'] # all saved data in csv file (for TTT)
+# label = ['n','total_reward','epsilon','avg_reward', 'losses', 'points'] # for Snake and SpaceInvaders
+#label = ['n','weight_1','weight_2','weight_3','error'] # for the examples
+label = ['n','error_1, a = 1','error_2, a = 2','error_3, a = 3'] # for the joint examples
 
-#label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose_count', 'illegal_moves'] # all saved data in csv file
-label = ['n','total_reward','epsilon','avg_reward', 'losses', 'avg_points']
-plot =['n'] # put in here what should be processed
+
+plot = ['error_1, a = 1','error_2, a = 2','error_3, a = 3'] # put in here what should be processed
 color_mode = 'cyanred' #choose from gray, blue, red, yellow, cyanred, gremag, yelblue
 regression = False # make a regression 
 reg_dim = 1 # dimension of regression
-=======
-file_name = 'test.txt' #input filename
-name = 'test' # name the plot
-label = ['n','total_reward','epsilon','avg_reward', 'losses', 'win_count', 'lose_count', 'illegal_moves'] # all saved data in csv file
-plot = ['total_reward'] # put in here what should be processed
-color_mode = 'cyanred' #choose from gray, blue, red, yellow, cyanred, gremag, yelblue
-regression = True # make a regression 
-reg_dim = 14 # dimension of regression
->>>>>>> 404ec07a1e17111499bb3d9b1adbbf4680abf729
 reg_mode = 'normal' #normal
 predict = False # if the prediction should be plottet
 range_predict = 10 # range of the prediction
 reg_func_inp =[1000000]
 save_file = True
+calculate_average = False
 ################################################################
 def color_brightener(color, dim =0): #brightens the color
     first = color[1:3]
@@ -53,7 +47,6 @@ def color_brightener(color, dim =0): #brightens the color
     return(hex_number)
 
 def color_generator(amount, scale): # generates equally distributed colors
-    wins = []
     colors = []
     difference = round((255/amount)-0.5)
     # hex numbers have 3 values  (red,gree,blue) each in hex in order to make colors just all numbers from 0 to 255 are valid
@@ -100,17 +93,18 @@ with open(file_name) as csv_file:
         for i in range(len(row)):
             row_data.append(row[i])
         whole_data.append(row_data)
-        wins.append(row_data[5])        
+        if calculate_average:
+            wins.append(row_data[5])        
         row_data = []           
     print(f'Processed {line_count} lines with {amount_of_rows} entries.')
 color = color_generator(len(plot)+1, 'cyanred')
 x=[]
-
-beg_av = (float(wins[0])+float(wins[2]))/2
-end_av = (float(wins[-1])+float(wins[-2]))/2
-print(f'Win in % first {beg_av} in the end {end_av}.')
+if calculate_average:
+    beg_av = (float(wins[0])+float(wins[2]))/2
+    end_av = (float(wins[-1])+float(wins[-2]))/2
+    print(f'Win in % first {beg_av} in the end {end_av}.')
 for i in range(line_count):
-    x.append(int(whole_data[i][0]))
+    x.append(float(whole_data[i][0]))
 plt.style.use('fivethirtyeight')
 params = {'legend.fontsize': 20,
          'axes.labelsize':  9,
@@ -121,8 +115,6 @@ plt.rcParams.update(params)
 for q in range(len(plot)):
     i = label.index(plot[q])
     for y in range(line_count):
-        print(len(whole_data))
-        print("y,i: ",y,i)
         plot_data.append(float(whole_data[y][i]))
     plt.plot(x,plot_data ,color = color[q],label = label[i],linewidth = 1.2)
     #plt.ylim(0,5)
