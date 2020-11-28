@@ -21,6 +21,10 @@ import min_max_alg as mma
 
 class play_dqn_pygame:
     def __init__(self):
+        # Seed displayed only at first play
+        self.spl = False
+        self.snl = False
+
         # Colors
         self.Black = (0, 0, 0)
         self.Grey = (10, 10, 10)
@@ -574,6 +578,10 @@ class play_dqn_pygame:
     def snakeAI(self):
         if self.first:
             if self.reallyFirst:
+                if not self.snl:
+                    random.seed(574)
+                    self.snl = True
+
                 self.first = False
                 self.snake = g.snake()
                 self.field = self.snake.field
@@ -710,6 +718,9 @@ class play_dqn_pygame:
             # when changing dimensions choose values so that all corresponding calculations have integer solutions
             # if first draw, set variables
             if self.reallyFirst:
+                if not self.spl:
+                    random.seed(137)
+                    self.spl = True
                 self.first = False
                 # load data from the game
                 self.spaceInvader = g.space_invader()
