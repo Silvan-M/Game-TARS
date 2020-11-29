@@ -311,7 +311,14 @@ class play_dqn_pygame:
             self.drawBoard()
 
             if self.activePlayer == 0:
-                randMove, q = self.tictactoeDQN.get_q(np.array(self.tictactoe.convert0neHot(self.state)), 0) # TrainNet determines favorable action
+                try:
+                    randMove, q = self.tictactoeDQN.get_q(np.array(self.tictactoe.convert0neHot(self.state)), 0) # TrainNet determines favorable action
+                except:
+                    self.reallyFirst = True
+                    self.first = True
+                    self.modelLoaded = False
+                    self.returnpage = self.page
+                    print("Error while applying model!")
                 action = 0
                 
                 if not randMove:
@@ -460,7 +467,14 @@ class play_dqn_pygame:
             
             # Slow down AI to only take action every 30 frames (1 sec), otherwise you can't observe the game
             if self.counter % 30 == 0:
-                randMove, q = self.tictactoeDQN.get_q(np.array(self.tictactoe.convert0neHot(self.state)), 0) # TrainNet determines favorable action
+                try:
+                    randMove, q = self.tictactoeDQN.get_q(np.array(self.tictactoe.convert0neHot(self.state)), 0) # TrainNet determines favorable action
+                except:
+                    self.reallyFirst = True
+                    self.first = True
+                    self.modelLoaded = False
+                    self.returnpage = self.page
+                    print("Error while applying model!")
                 action = 0
                 
                 if not randMove:
@@ -624,7 +638,14 @@ class play_dqn_pygame:
             self.drawSnake()
 
             if self.action != -1 and (self.counter % 5 == 0):
-                self.action = self.snakeDQN.get_action(np.array(self.state),0)
+                try:
+                    self.action = self.snakeDQN.get_action(np.array(self.state),0)
+                except:
+                    self.reallyFirst = True
+                    self.first = True
+                    self.modelLoaded = False
+                    self.returnpage = self.page
+                    print("Error while applying model!")
                 done, reward, state =  self.snake.step(self.action)
                 self.field = self.snake.field
                 self.state = state
@@ -780,7 +801,14 @@ class play_dqn_pygame:
                 # Simulate batch size of 2
                 inp = [np.asarray(self.prevState).flatten(), np.asarray(self.state).flatten()]
 
-            action = self.spaceinvaderDQN.get_action(np.array(inp), 0) # TrainNet determines favorable action
+            try:
+                action = self.spaceinvaderDQN.get_action(np.array(inp), 0) # TrainNet determines favorable action
+            except:
+                    self.reallyFirst = True
+                    self.first = True
+                    self.modelLoaded = False
+                    self.returnpage = self.page
+                    print("Error while applying model!")
 
             self.shoot_buffer += 1
             convAction = ['N', False]
@@ -869,6 +897,9 @@ class play_dqn_pygame:
             self.checkpage = -1
             self.item = item
             self.page = page
+        if self.returnpage != 0:
+            self.page = self.returnpage
+            self.returnpage = 0
         amount_pages = len(item)//3
         if len(item)%3 != 0:
             amount_pages += 1
@@ -936,6 +967,8 @@ class play_dqn_pygame:
         self.scrollBar(0,[['1',self.back],['2',self.back],['3',self.back],['4',self.back],['5',self.back]],'x')
 
     def startMenu(self):
+        # After a model crashes the game it will return to the last page displayed, this variable saves this and gets reset here
+        self.returnpage = 0
         # Clear screen and set background color
         self.screen.fill(self.Black)
         
