@@ -364,7 +364,7 @@ class train_dqn():
                 avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
                 illegal_moves += illegal_moves_game
                 if (n % log_interval == 0) and (n != 0) or (n == N-1):
-                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 4.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:9.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
+                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 5.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:9.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
                     
                     f = open(log_path, "a")
                     f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
