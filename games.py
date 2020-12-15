@@ -1481,7 +1481,12 @@ class ConnectFour:
         # REWARDS
         self.reward_won = 1000
         self.reward_lost = -1000
-        self.reward_tie = 50
+        self.reward_tie = 100
+        self.reward_2inARow = 50
+        self.reward_3inARow = 200
+        self.reward_2inARowPrevent = 50 # Not implemented yet
+        self.reward_3inARowPrevent = 500 # Not implemented yet
+
 
         self.won = -1 # -1: In Progress, 0: Tie, 1: True, 2: False
 
@@ -1579,6 +1584,86 @@ class ConnectFour:
             or self._checkDiagonal2((4,5), player) or self._checkDiagonal2((3,5), player))
         return result        
     
+    def _checkRowsN(self, player, n):
+        '''Prüft ob Spieler in einer Zeile vier Steine hintereinander hat'''
+        a = 0
+        for r in range(6):
+            number = 0
+            for c in range(7):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        a += 1
+                else:
+                    number = 0
+        return a
+    
+    def _checkColumnsN(self, player, n):
+        '''Prüft ob Spieler in einer Spalte vier Steine untereinander hat'''
+        a = 0
+        for c in range(7):
+            number = 0
+            for r in range(6):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        a += 1
+                else:
+                    number = 0
+        return a
+    
+    def _checkDiagonal1N(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        a = 0
+        while c < 7 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    a += 1
+            else:
+                number = 0
+            c += 1
+            r -= 1
+        return a
+            
+    def _checkDiagonals1N(self, player, n):
+        '''Prüft ob Spieler in einer der Diagonalen von links unten nach rechts oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal1N((0,3), player, n) + self._checkDiagonal1N((0,4), player, n)
+            + self._checkDiagonal1N((0,5), player, n) + self._checkDiagonal1N((1,5), player, n)
+            + self._checkDiagonal1N((2,5), player, n) + self._checkDiagonal1N((3,5), player, n))
+        return result
+    
+    def _checkDiagonal2N(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        a = 0
+        while c >= 0 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    a += 1
+            else:
+                number = 0
+            c -= 1
+            r -= 1
+        return a
+    
+    def _checkDiagonals2N(self, player, n):
+        '''Prüft ob Spieler in einer der Diagonalen von rechts unten nach links oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal2N((6,3), player, n) or self._checkDiagonal2N((6,4), player, n)
+            or self._checkDiagonal2N((6,5), player, n) or self._checkDiagonal2N((5,5), player, n)
+            or self._checkDiagonal2N((4,5), player, n) or self._checkDiagonal2N((3,5), player, n))
+        return result   
+    
+    def _getCombN(self, player, n):
+        '''Gibt als zahl wieviele presets mit n pins existieren'''
+        return self._checkRowsN(player, n) + self._checkColumnsN(player, n) + self._checkDiagonals1N(player, n) + self._checkDiagonals2N(player, n)
+    
     def _wins(self, player):
         '''Gibt als bool zurück ob ein Spieler gewonnen hat'''
         return self._checkRows(player) or self._checkColumns(player) or self._checkDiagonals1(player) or self._checkDiagonals2(player)
@@ -1597,6 +1682,8 @@ class ConnectFour:
     def stepRandom(self, action):
         reward = 0
         
+        # Gets combinations with 2 and 3 pins in a row before to compare afterwards
+        presetAIBefore = [self._getCombN(1,2),self._getCombN(1,3)]
         # AI player 1
         self._currentPlayer = 1
         self._setAtPosition([action])
@@ -1605,7 +1692,14 @@ class ConnectFour:
         if done:
             reward += self.reward_won
             self.won = 1
+        presetAIAfter = [self._getCombN(1,2),self._getCombN(1,3)]
+
+        if presetAIBefore[0] < presetAIAfter[0]:
+            reward += self.reward_2inARow
         
+        if presetAIBefore[1] < presetAIAfter[1]:
+            reward += self.reward_3inARow
+
         if not won:
             # Random player 2
             self._currentPlayer = 2
