@@ -223,8 +223,14 @@ class train_dqn():
         prev_observations = observations
         losses = list()
         while not done: # observes until game is done 
-            
-            inp = observations
+        
+            for i in range(len(observations)):
+                clone_observations = [0]*42
+                if observations[i]== 2:
+                    clone_observations[i] = 1
+                    observations[i] = 0
+            one_hot_observations = [observations, clone_observations]
+            inp = one_hot_observations
             if self.TrainNet.batch_size > 1:
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
