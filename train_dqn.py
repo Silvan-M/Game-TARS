@@ -272,12 +272,12 @@ class train_dqn():
                 for row in range(0, 6):
                     print(observations[(row*7):(row*7+7)])
                 print("Reward: {0: 3.1f} | Wins: {1:5} | Done: {2}\n".format(rewards,str(wins),str(done)))
-        return rewards, mean(losses), wins, lose, 0 #returns rewards and average
+        return rewards, mean(losses), wins, lose, ties #returns rewards and average
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10],"connectfour":[self.play_connect_four,g.ConnectFour,"connectfour",log.plotTicTacToe,0,100]}
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10],"connectfour":[self.play_connect_four,g.ConnectFour,"connectfour",log.plotConnectFour,0,100]}
         
         game = "useInput"
         
@@ -364,7 +364,7 @@ class train_dqn():
                 avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
                 illegal_moves += illegal_moves_game
                 if (n % log_interval == 0) and (n != 0) or (n == N-1):
-                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 4.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:2.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
+                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 4.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:9.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
                     
                     f = open(log_path, "a")
                     f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")
