@@ -347,7 +347,7 @@ class train_dqn():
         total_rewards = np.empty(N)
         win_count = 0
         lose_count = 0
-        log_interval = 10
+        log_interval = game[5]
 
         # For storing logs and model afterwards
         current_time = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")

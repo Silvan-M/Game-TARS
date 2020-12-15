@@ -271,13 +271,13 @@ def plotConnectFour(log_path):
     log_interval = int(log_path[log_interval_start_index+3:N_start_index])
 
     # intvl defines how many values should be taken the average of, this will prevent too much data points in the graph, so by default it is set to 1, but if N gets higher than 100K it will average every 100 values
-    intvl = 10
+    intvl = 1
 
     if len(data)*log_interval >= 100000:
-        intvl = 1000
+        intvl = 100
         print("Automatically swichted to avg. every 100th value")
     elif len(data)*log_interval >= 50000:
-        intvl = 100
+        intvl = 10
         print("Automatically swichted to avg. every 10th value")
     amount_datapoints = 8
     avg_data = [0]*amount_datapoints
