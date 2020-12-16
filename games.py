@@ -1486,6 +1486,8 @@ class ConnectFour:
         self.reward_3inARow = 200
         self.reward_3inARowPrevent = 500
         self.reward_4inARowPrevent = 800 
+        self.reward_3inARowNotPrevent = 500
+        self.reward_4inARowNotPrevent = 800 
 
 
         self.won = -1 # -1: In Progress, 0: Tie, 1: True, 2: False
@@ -1813,12 +1815,16 @@ class ConnectFour:
             reward += self.reward_3inARow
 
         for slot in self.preventSlots[2]:
-            if action != slot:
+            if action == slot:
                 reward += self.reward_3inARowPrevent
+            else:
+                reward += self.reward_3inARowNotPrevent
 
         for slot in self.preventSlots[3]:
-            if action != slot:
+            if action == slot:
                 reward += self.reward_4inARowPrevent
+            else:
+                reward += self.reward_4inARowNotPrevent
 
         if not won:
             # Random player 2
