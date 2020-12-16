@@ -1486,8 +1486,8 @@ class ConnectFour:
         self.reward_3inARow = 200
         self.reward_3inARowPrevent = 500
         self.reward_4inARowPrevent = 800 
-        self.reward_3inARowNotPrevent = 500
-        self.reward_4inARowNotPrevent = 800 
+        self.reward_3inARowNotPrevent = -500
+        self.reward_4inARowNotPrevent = -800 
 
 
         self.won = -1 # -1: In Progress, 0: Tie, 1: True, 2: False
