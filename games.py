@@ -1461,14 +1461,12 @@ class ConnectFour:
         self._board = [[0 for i in range(6)] for j in range(7)]
         self._currentPlayer = 0
         
-        self.x = 7
-        self.y = 6
         batch_size = 1
         gamma = 0.9
         copy_step = 50
         num_state = 42
         num_actions = 7 # 7 columns
-        hidden_units = [27*9]
+        hidden_units = [64]*3
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
@@ -1676,7 +1674,7 @@ class ConnectFour:
     # Functions to retrieve positions the AI could stop the player from placing n consequtive pins
     def _checkIfValidCoord(self, x=0, y=0):
         '''Checks if given coordinate is valid'''
-        if ((0 <= x) and (x > 7)) and ((0 <= y) and (y > 6)):
+        if ((0 <= x) and (x < 7)) and ((0 <= y) and (y < 6)):
             return True
         else:
             return False
@@ -1687,7 +1685,7 @@ class ConnectFour:
             # Check if a pin is set at the given coordinate 
             if self._board[x][y] == 0:
                 # Check if wall or pin is below
-                if (y-1 > 6):
+                if (y+1 < 6):
                     if self._board[x][y] != 0:
                         return True # Pin is below
                 else:
@@ -1719,8 +1717,6 @@ class ConnectFour:
                     number += 1
                     if number >= n:
                         if self._checkForSetPossibility(c,r-n):
-                            self.preventSlots[n].add(c)
-                        if self._checkForSetPossibility(c,r+1):
                             self.preventSlots[n].add(c)
                 else:
                     number = 0
