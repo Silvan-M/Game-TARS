@@ -72,7 +72,7 @@ class train_dqn():
             else:
                 losses.append(loss.numpy()) # converted into an integer
             iter += 1 # increment the counter
-            if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+            if iter % copy_step == 0: # copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
                 self.TargetNet.copy_weights(self.TrainNet) 
 
             if verbose == 1:
