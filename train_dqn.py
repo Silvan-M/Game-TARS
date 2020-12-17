@@ -220,20 +220,16 @@ class train_dqn():
         iter = 0
         done = False
         observations = state
-        prev_observations = observations
         losses = list()
         while not done: # observes until game is done 
         
+            clone_observations = [0]*42
             for i in range(len(observations)):
-                clone_observations = [0]*42
                 if observations[i]== 2:
                     clone_observations[i] = 1
                     observations[i] = 0
-            one_hot_observations = [observations, clone_observations]
-            inp = one_hot_observations
-            if self.TrainNet.batch_size > 1:
-                # Simulate batch size of 2
-                inp = [prev_observations, observations]
+            
+            inp = np.concatenate((observations,clone_observations), axis=0, out=None)
 
             didRandom, prob = self.TrainNet.get_prob(np.array(inp), 1) # TrainNet determines favorable action
             
@@ -247,7 +243,6 @@ class train_dqn():
                         processing = False
 
 
-            prev_observations = observations # saves observations
             done, reward, observations =  environment.stepRandom(action)
 
             if environment.won == 0:

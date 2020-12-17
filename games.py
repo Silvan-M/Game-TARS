@@ -1464,7 +1464,7 @@ class ConnectFour:
         batch_size = 1
         gamma = 0.9
         copy_step = 50
-        num_state = 42
+        num_state = 84
         num_actions = 7 # 7 columns
         hidden_units = [64]*2
         max_experience = 50000
@@ -1479,12 +1479,12 @@ class ConnectFour:
         # REWARDS
         self.reward_won = 1000
         self.reward_lost = -1000
-        self.reward_tie = 100
+        self.reward_tie = 500
         self.reward_2inARow = 50
-        self.reward_3inARow = 200
-        self.reward_3inARowPrevent = 500
+        self.reward_3inARow = 100
+        self.reward_3inARowPrevent = 50
         self.reward_4inARowPrevent = 800 
-        self.reward_3inARowNotPrevent = -500
+        self.reward_3inARowNotPrevent = -50
         self.reward_4inARowNotPrevent = -800 
 
 
