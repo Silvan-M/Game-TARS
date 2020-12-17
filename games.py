@@ -1466,7 +1466,7 @@ class ConnectFour:
         copy_step = 50
         num_state = 42
         num_actions = 7 # 7 columns
-        hidden_units = [64]*3
+        hidden_units = [64]*2
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
