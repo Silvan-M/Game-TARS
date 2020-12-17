@@ -1,6 +1,9 @@
 import copy
 import random
 import math
+
+#### IMPORTANT
+##### taken and adapted from https://stackoverflow.com/questions/61072185/minimax-algorithm-for-tictactoe-in-python ############
 X = "X"
 O = "O"
 EMPTY = None

@@ -103,11 +103,11 @@ class train_dqn():
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
 
-            _, prob = self.TrainNet.get_prob(np.array(inp), 0) # TrainNet determines favorable action
+            _, prob = self.TrainNet.get_prob(np.array(inp), 1) # TrainNet determines favorable action
             
-            if np.random.random() < epsilon:
-                delete = np.argmax(prob)
-                prob[delete] = -1
+            # if np.random.random() < epsilon:
+            #     delete = np.argmax(prob)
+            #     prob[delete] = -1
             
             action = np.argmax(prob)
             
@@ -117,17 +117,17 @@ class train_dqn():
                 apples += 1
 
             rewards += reward        
-            exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
-            self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
-            loss = self.TrainNet.train(self.TargetNet) # returns loss 
-            if isinstance(loss, int): # checks if loss is an integer
-                losses.append(loss)
-            else:
-                losses.append(loss.numpy()) # converted into an integer
-            iter += 1 # increment the counter
-            if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
-                self.TargetNet.copy_weights(self.TrainNet) 
-
+            # exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
+            # self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
+            # loss = self.TrainNet.train(self.TargetNet) # returns loss 
+            # if isinstance(loss, int): # checks if loss is an integer
+            #     losses.append(loss)
+            # else:
+            #     losses.append(loss.numpy()) # converted into an integer
+            # iter += 1 # increment the counter
+            # if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+            #     self.TargetNet.copy_weights(self.TrainNet) 
+            losses.append(0)
             if verbose == 1:
                 if done:
                     print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))
@@ -210,11 +210,80 @@ class train_dqn():
                 print("Reward: {0: 8.0f} | Score: {1:7} | Done: {2} | Action: {2}".format(rewards,str(environment.score[3]),str(done)),str(action))
         return rewards, mean(losses), environment.score[3] #returns rewards and average
 
+
+    def play_connect_four(self, state, environment, epsilon, copy_step):
+        environment._resetBoard()
+        rewards = 0
+        wins = 0
+        ties = 0
+        lose = 0
+        iter = 0
+        done = False
+        observations = state
+        prev_observations = observations
+        losses = list()
+        while not done: # observes until game is done 
+        
+            for i in range(len(observations)):
+                clone_observations = [0]*42
+                if observations[i]== 2:
+                    clone_observations[i] = 1
+                    observations[i] = 0
+            one_hot_observations = [observations, clone_observations]
+            inp = one_hot_observations
+            if self.TrainNet.batch_size > 1:
+                # Simulate batch size of 2
+                inp = [prev_observations, observations]
+
+            didRandom, prob = self.TrainNet.get_prob(np.array(inp), 1) # TrainNet determines favorable action
+            
+            action = prob
+            if not didRandom:
+                processing = True
+                possible = environment._getValidMoves()
+                while processing:
+                    action = np.argmax(prob)
+                    if action in possible:
+                        processing = False
+
+
+            prev_observations = observations # saves observations
+            done, reward, observations =  environment.stepRandom(action)
+
+            if environment.won == 0:
+                ties += 1
+            elif environment.won == 1:
+                wins += 1
+            elif environment.won == 2:
+                lose += 1
+                
+            rewards += reward        
+            # exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
+            # self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
+            # loss = self.TrainNet.train(self.TargetNet) # returns loss 
+            # if isinstance(loss, int): # checks if loss is an integer
+            #     losses.append(loss)
+            # else:
+            #     losses.append(loss.numpy()) # converted into an integer
+            # iter += 1 # increment the counter
+            # if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+            #     self.TargetNet.copy_weights(self.TrainNet) 
+            losses.append(0)
+            if verbose == 1:
+                if done:
+                    print("Reward: {0: 3.1f} | Wins: {1:5} | Done: {2}".format(rewards,str(wins),str(done)))
+            elif verbose == 2:
+                print("Reward: {0: 3.1f} | Wins: {1:5} | Done: {2}".format(rewards,str(wins),str(done)))
+            elif verbose == 3:
+                for row in range(0, 6):
+                    print(observations[(row*7):(row*7+7)])
+                print("Reward: {0: 3.1f} | Wins: {1:5} | Done: {2}\n".format(rewards,str(wins),str(done)))
+        return rewards, mean(losses), wins, lose, ties #returns rewards and average
             
     def main(self, testing):
         # Dict of all games for generalization purposes, values are:
         # 0: play_game func, 1: Which environment to use, 2: Subfolder for checkpoints, log and figures, 3: Plotting func, 4: PlayGameReturn (0 = win&lose, 1 = points), 5: optimal log_interval
-        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10]}
+        games = {"tictactoe":[self.play_tictactoe,g.tictactoe,"tictactoe",log.plotTicTacToe,0,100],"snake":[self.play_snake,g.snake,"snake",log.plotSnake,1,10],"spaceinvaders":[self.play_space_invader,g.space_invader,"spaceinvader",log.plotSpaceInvader,1,10],"connectfour":[self.play_connect_four,g.ConnectFour,"connectfour",log.plotConnectFour,0,100]}
         
         game = "useInput"
         
@@ -228,6 +297,8 @@ class train_dqn():
                 game = "snake"
             elif userInp == "2":
                 game = "spaceinvaders"
+            elif userInp == "3":
+                game = "connectfour"
             else:
                 print("Not recognized input, please try again")
         print("Training "+game)
@@ -299,7 +370,7 @@ class train_dqn():
                 avg_rewards = total_rewards[max(0, n - log_interval):(n + 1)].mean()
                 illegal_moves += illegal_moves_game
                 if (n % log_interval == 0) and (n != 0) or (n == N-1):
-                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 4.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:2.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
+                    print("Eps.: {0:{1}.0f} | Eps. Rew.: {2: 5.0f} | Epsilon: {3:2.0f} | Avg. Rew. (last {4:.0f}): {5:9.3f} | Eps. Loss: {6: 10.1f} | Wins: {7:2.0f} | Lose: {8:.0f}".format(n, len(str(N)), total_reward, epsilon, log_interval, avg_rewards, losses, win_count, lose_count))
                     
                     f = open(log_path, "a")
                     f.write((str(n)+";"+str(total_reward)+ ";"+str(epsilon)+";"+str(avg_rewards)+";"+ str(losses)+";"+ str(win_count))+";"+ str(lose_count)+";"+ str(illegal_moves)+"\n")

@@ -1453,6 +1453,396 @@ class snake:
         newField = np.array(newField).reshape((middle*2-1)**2)
         return newField.tolist()
 
+
+class ConnectFour:
+    # This code was given to us by Simon Reichmuth and Patric Rousselot and was altered to serve our purpose
+
+    def __init__(self):
+        self._board = [[0 for i in range(6)] for j in range(7)]
+        self._currentPlayer = 0
+        
+        batch_size = 1
+        gamma = 0.9
+        copy_step = 50
+        num_state = 42
+        num_actions = 7 # 7 columns
+        hidden_units = [64]*2
+        max_experience = 50000
+        min_experience = 100
+        alpha = 0.01
+        epsilon = 1
+        min_epsilon = 0.05
+        decay = 0.999
+        self.variables = [[0]*num_state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, batch_size, alpha, epsilon, min_epsilon, decay]
+
+
+        # REWARDS
+        self.reward_won = 1000
+        self.reward_lost = -1000
+        self.reward_tie = 100
+        self.reward_2inARow = 50
+        self.reward_3inARow = 200
+        self.reward_3inARowPrevent = 500
+        self.reward_4inARowPrevent = 800 
+        self.reward_3inARowNotPrevent = -500
+        self.reward_4inARowNotPrevent = -800 
+
+
+        self.won = -1 # -1: In Progress, 0: Tie, 1: True, 2: False
+        self.preventSlots = [set(),set(),set(),set()] # sets of slots where the AI should set a pin to avoid a loss [1-, 2-, 3-, 4-in-a-row] (first two sets usually empty and not used, due to unnessecity)
+
+    def _resetBoard(self):
+        self._board = [[0 for i in range(6)] for j in range(7)]
+        self.won = -1 
+        
+        
+    def _getValidMoves(self):
+        '''Gibt Liste der möglichen Spalten zurück'''
+        result = []
+        for c in range(7):
+            if self._board[c][0] == 0:
+                result.append(c)
+        return result
+    
+    def _normalizeMove(self, m):
+        '''Sollte von Modellen überschrieben werden, bei denen Agents z.B. nur
+           korrekte x-Koordinaten liefern, um die y-Koordinate zu korrigieren'''
+        return m
+    
+    def _isValidMove(self, m):
+        '''Prüft ob es ein gültiger Spielzug ist'''
+        return (m[0] in self._getValidMoves())
+
+    # Functions for checking if a player won
+    def _checkRows(self, player):
+        '''Prüft ob Spieler in einer Zeile vier Steine hintereinander hat'''
+        for r in range(6):
+            number = 0
+            for c in range(7):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number > 3:
+                        return True
+                else:
+                    number = 0
+        return False
+    
+    def _checkColumns(self, player):
+        '''Prüft ob Spieler in einer Spalte vier Steine untereinander hat'''
+        for c in range(7):
+            number = 0
+            for r in range(6):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number > 3:
+                        return True
+                else:
+                    number = 0
+        return False
+    
+    def _checkDiagonal1(self, startpos, player):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        while c < 7 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number > 3:
+                    return True
+            else:
+                number = 0
+            c += 1
+            r -= 1
+        return False
+            
+    def _checkDiagonals1(self, player):
+        '''Prüft ob Spieler in einer der Diagonalen von links unten nach rechts oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal1((0,3), player) or self._checkDiagonal1((0,4), player)
+            or self._checkDiagonal1((0,5), player) or self._checkDiagonal1((1,5), player)
+            or self._checkDiagonal1((2,5), player) or self._checkDiagonal1((3,5), player))
+        return result
+    
+    def _checkDiagonal2(self, startpos, player):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        while c >= 0 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number > 3:
+                    return True
+            else:
+                number = 0
+            c -= 1
+            r -= 1
+        return False
+    
+    def _checkDiagonals2(self, player):
+        '''Prüft ob Spieler in einer der Diagonalen von rechts unten nach links oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal2((6,3), player) or self._checkDiagonal2((6,4), player)
+            or self._checkDiagonal2((6,5), player) or self._checkDiagonal2((5,5), player)
+            or self._checkDiagonal2((4,5), player) or self._checkDiagonal2((3,5), player))
+        return result        
+    
+    def _wins(self, player):
+        '''Gibt als bool zurück ob ein Spieler gewonnen hat'''
+        return self._checkRows(player) or self._checkColumns(player) or self._checkDiagonals1(player) or self._checkDiagonals2(player)
+
+    # Functions for checking N amount of consequtive pins
+    def _checkRowsN(self, player, n):
+        '''Prüft ob Spieler in einer Zeile vier Steine hintereinander hat'''
+        a = 0
+        for r in range(6):
+            number = 0
+            for c in range(7):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        a += 1
+                else:
+                    number = 0
+        return a
+    
+    def _checkColumnsN(self, player, n):
+        '''Prüft ob Spieler in einer Spalte vier Steine untereinander hat'''
+        a = 0
+        for c in range(7):
+            number = 0
+            for r in range(6):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        a += 1
+                else:
+                    number = 0
+        return a
+    
+    def _checkDiagonal1N(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        a = 0
+        while c < 7 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    a += 1
+            else:
+                number = 0
+            c += 1
+            r -= 1
+        return a
+            
+    def _checkDiagonals1N(self, player, n):
+        '''Prüft ob Spieler in einer der Diagonalen von links unten nach rechts oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal1N((0,3), player, n) + self._checkDiagonal1N((0,4), player, n)
+            + self._checkDiagonal1N((0,5), player, n) + self._checkDiagonal1N((1,5), player, n)
+            + self._checkDiagonal1N((2,5), player, n) + self._checkDiagonal1N((3,5), player, n))
+        return result
+    
+    def _checkDiagonal2N(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        a = 0
+        while c >= 0 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    a += 1
+            else:
+                number = 0
+            c -= 1
+            r -= 1
+        return a
+    
+    def _checkDiagonals2N(self, player, n):
+        '''Prüft ob Spieler in einer der Diagonalen von rechts unten nach links oben
+           vier gleiche Steine hintereinander hat.'''
+        result = (self._checkDiagonal2N((6,3), player, n) or self._checkDiagonal2N((6,4), player, n)
+            or self._checkDiagonal2N((6,5), player, n) or self._checkDiagonal2N((5,5), player, n)
+            or self._checkDiagonal2N((4,5), player, n) or self._checkDiagonal2N((3,5), player, n))
+        return result   
+    
+    def _getCombN(self, player, n):
+        '''Gibt als zahl wieviele presets mit n pins existieren'''
+        return self._checkRowsN(player, n) + self._checkColumnsN(player, n) + self._checkDiagonals1N(player, n) + self._checkDiagonals2N(player, n)
+    
+    # Functions to retrieve positions the AI could stop the player from placing n consequtive pins
+    def _checkIfValidCoord(self, x=0, y=0):
+        '''Checks if given coordinate is valid'''
+        if ((0 <= x) and (x < 7)) and ((0 <= y) and (y < 6)):
+            return True
+        else:
+            return False
+
+    def _checkForSetPossibility(self, x, y):
+        '''Checks if it is currently possible to place a pin at the given coordinate'''
+        if self._checkIfValidCoord(x,y):
+            # Check if a pin is set at the given coordinate 
+            if self._board[x][y] == 0:
+                # Check if wall or pin is below
+                if (y+1 < 6):
+                    if self._board[x][y] != 0:
+                        return True # Pin is below
+                else:
+                    return True # Wall is below
+        return False
+
+
+    def _checkRowsNPrevent(self, player, n):
+        '''Prüft ob Spieler in einer Zeile vier Steine hintereinander hat'''
+        for r in range(6):
+            number = 0
+            for c in range(7):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        if self._checkForSetPossibility(c-n,r):
+                            self.preventSlots[n].add(c-n)
+                        if self._checkForSetPossibility(c+1,r):
+                            self.preventSlots[n].add(c+1)
+                else:
+                    number = 0
+    
+    def _checkColumnsNPrevent(self, player, n):
+        '''Prüft ob Spieler in einer Spalte vier Steine untereinander hat'''
+        for c in range(7):
+            number = 0
+            for r in range(6):
+                if self._board[c][r] == player:
+                    number += 1
+                    if number >= n:
+                        if self._checkForSetPossibility(c,r-n):
+                            self.preventSlots[n].add(c)
+                else:
+                    number = 0
+    
+    def _checkDiagonal1NPrevent(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        while c < 7 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    if self._checkForSetPossibility(c+1,r-1):
+                        self.preventSlots[n].add(c+1)
+            else:
+                number = 0
+            c += 1
+            r -= 1
+    
+    def _checkDiagonal2NPrevent(self, startpos, player, n):
+        c = startpos[0]
+        r = startpos[1]
+        number = 0
+        while c >= 0 and r >= 0:
+            if self._board[c][r] == player:
+                number += 1
+                if number >= n:
+                    if self._checkForSetPossibility(c-1,r-1):
+                        self.preventSlots[n].add(c-1)
+            else:
+                number = 0
+            c -= 1
+            r -= 1
+
+    def _updatePreventN(self, player, n):
+        '''Updates the preventSlots variable, 
+        checking for slots an AI should choose to prevent the opponent from achieving n consequitive pins'''
+        self.preventSlots[n].clear()
+        self._checkRowsNPrevent(player, n)
+        self._checkColumnsNPrevent(player, n)
+        self._checkDiagonal1NPrevent((0,3), player, n)
+        self._checkDiagonal1NPrevent((0,4), player, n)
+        self._checkDiagonal1NPrevent((0,5), player, n)
+        self._checkDiagonal1NPrevent((1,5), player, n)
+        self._checkDiagonal1NPrevent((2,5), player, n)
+        self._checkDiagonal1NPrevent((3,5), player, n)
+        self._checkDiagonal2NPrevent((6,3), player, n)
+        self._checkDiagonal2NPrevent((6,4), player, n)
+        self._checkDiagonal2NPrevent((6,5), player, n)
+        self._checkDiagonal2NPrevent((5,5), player, n)
+        self._checkDiagonal2NPrevent((4,5), player, n)
+        self._checkDiagonal2NPrevent((3,5), player, n)
+
+    def _setAtPosition(self, m):
+        # find first free slot in given column
+        r = 5
+        while self._board[m[0]][r] != 0 and r >= 0:
+            r -= 1
+        if self._currentPlayer == 1:
+            self._board[m[0]][r] = 1
+        else:
+            self._board[m[0]][r] = 2
+        return (m[0],r)
+
+    def stepRandom(self, action):
+        reward = 0
+        
+        # Gets combinations with 2 and 3 pins in a row before to compare afterwards
+        presetAIBefore = [self._getCombN(1,2),self._getCombN(1,3)]
+
+        # Update preventSlots, checking for possibilities for the AI to prevent 3- or 4-in-a-row
+        self._updatePreventN(2,2) # Check for 3-in-a-row
+        self._updatePreventN(2,3) # Check for 4-in-a-row
+        self.preventSlots[2] -= self.preventSlots[3] # Remove all slots which prevent 4-in-a-row with all slots preventing 3-in-a-row
+
+        # AI player 1
+        self._currentPlayer = 1
+        self._setAtPosition([action])
+        done = self._wins(1)
+        won = done
+        if done:
+            reward += self.reward_won
+            self.won = 1
+        presetAIAfter = [self._getCombN(1,2),self._getCombN(1,3)]
+
+
+        # Punishments and Rewards
+        if presetAIBefore[0] < presetAIAfter[0]:
+            reward += self.reward_2inARow
+        
+        if presetAIBefore[1] < presetAIAfter[1]:
+            reward += self.reward_3inARow
+
+        for slot in self.preventSlots[2]:
+            if action == slot:
+                reward += self.reward_3inARowPrevent
+            else:
+                reward += self.reward_3inARowNotPrevent
+
+        for slot in self.preventSlots[3]:
+            if action == slot:
+                reward += self.reward_4inARowPrevent
+            else:
+                reward += self.reward_4inARowNotPrevent
+
+        if not won:
+            # Random player 2
+            self._currentPlayer = 2
+            possible = self._getValidMoves()
+            if possible == []:
+                reward += self.reward_tie
+                self.won = 0
+                done = True
+            else:
+                self._setAtPosition([random.choice(possible)])
+                
+                if self._wins(2):
+                    reward += self.reward_lost
+                    self.won = 2
+                    done = True
+
+        self._boardT = np.transpose(np.array(self._board))
+        state = self._boardT.flatten()
+
+        return done, reward, state
+
 if __name__ == '__main__':
     # This code block will only run if you directly run games.py
     
@@ -1464,6 +1854,8 @@ if __name__ == '__main__':
         train_dqn = getattr(module, 'train_dqn')()
         train_dqn.main(False)
     else:
-        g = space_invader()
-        g.figures_set([10,10],1)
-        g.print()
+        cf = ConnectFour()
+        while True:
+            action = int(input("\nChoose your step: "))
+            done, reward, state = cf.stepRandom(action)
+            print(done, reward, state)
