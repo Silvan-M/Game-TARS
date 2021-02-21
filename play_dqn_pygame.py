@@ -50,6 +50,9 @@ class play_dqn_pygame:
         # This is a nasty workaround, please don't tell anyone
         self.reallyFirst = True
 
+        # Assisted mode
+        self.assisted = False
+
     # DISPLAY FUNCTIONS: Frequently used structures will be defined here as a function
 
     def addButton(self, message,x_center,y_center,w,h,action=None):
@@ -89,6 +92,36 @@ class play_dqn_pygame:
         rect = text.get_rect()
         rect.center = (x+w/2, y+h/2)
         self.screen.blit(text,rect)
+
+    
+    def addAsssistedButton(self,x_center,y_center):
+        mouse = pygame.mouse.get_pos()
+        w = 20
+        x = x_center - 0.5*w
+        y = y_center - 0.5*w
+
+        # Detect mouse hover
+        if y < mouse[1] < y+w and x+60 < mouse[0] < x+w+60:
+            # Detect mouse press
+            if self.mouseDidPress:
+                self.assisted = not self.assisted
+                self.mouseDidPress = False
+            else:
+                # Hover effect
+                pygame.draw.rect(self.screen, self.White, [x+60, y, w, w], 2)
+        else:
+            pygame.draw.rect(self.screen, self.Teal, [x+60, y, w, w], 2)
+        
+        font = pygame.font.Font("resources/Ailerons-Regular.otf", 20)
+        text = font.render("Assisted: ", True, self.White)
+        rect = text.get_rect()
+        rect.center = (x+w/2, y+w/2)
+        self.screen.blit(text,rect)
+
+        if self.assisted:
+            k = w/2-2
+            pygame.draw.line(self.screen, self.White, [x_center-k+60,y_center-k], [x_center+k+60,y_center+k], 3)
+            pygame.draw.line(self.screen, self.White, [x_center+k+60,y_center-k], [x_center-k+60,y_center+k], 3)
 
     def addButtonCallBack(self, message,x_center,y_center,w,h,path = None):
         mouse = pygame.mouse.get_pos()
@@ -178,10 +211,10 @@ class play_dqn_pygame:
 
     # Snake specific functions
     def drawSnake(self):
+        self.addAsssistedButton(100,30)
         fs = self.snake.field_size
         pygame.draw.rect(self.screen, self.White, [150, 50, 500, 500], 3)
         self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
-
         for i, v in enumerate(self.field):
             if v == 1:
                 distanceTopWall = i//self.snake.field_size
@@ -971,7 +1004,7 @@ class play_dqn_pygame:
         self.returnpage = 0
         # Clear screen and set background color
         self.screen.fill(self.Black)
-        
+
         # Add necessary buttons
         self.addText("G A M E   T A R S", self.anurati, 80, self.White, 400, 100)
         self.addText("The AI that can play games.", self.ailerons, 30, self.White, 400, 180)
