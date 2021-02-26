@@ -1,5 +1,3 @@
-![Game-TARS](https://github.com/Silvan-M/Game-TARS/blob/master/resources/title.png?raw=true)
-
 # Game-TARS
 The goal of this project is to train a deep learning AI to play games using Deep-Q-Learning.
 
