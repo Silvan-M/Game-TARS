@@ -1,37 +1,26 @@
-## Welcome to GitHub Pages
+![Game-TARS](https://github.com/Silvan-M/Game-TARS/blob/master/resources/title.png?raw=true)
 
-You can use the [editor on GitHub](https://github.com/Silvan-M/Game-TARS/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+# Game-TARS
+The goal of this project is to train a deep learning AI to play games using Deep-Q-Learning.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+# Installation
+Make sure you have following libraries installed:
+- Numpy
+- TensorFlow
+- Pygame
 
-### Markdown
+Then simply clone the project.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+# Training
+There are already pretrained models which we created for you. If you don't want to go through the hussle of training your own, skip this part.
+To train a game regurarly go into the main folder and launch `train_dqn.py`. Then you can type in one of our games ("tictactoe", "snake" or "spaceinvader") followed by the amount of games you want to train.
+You can also launch `train_dqn_vs_dqn.py` to train AI vs AI (only available for TicTacToe).
 
-```markdown
-Syntax highlighted code block
+# Playing
+To play any of our games go into the main folder and launch `play_dqn_pygame.py`. A user interface will pop up and you can choose one of three games. 
+You are able to choose to let the AI play or you can try the game yourself. When choosing AI you will be asked for a model. Choose a model you trained earlier or use our pretrained model for the best experience.
 
-# Header 1
-## Header 2
-### Header 3
+# Showcase Video
+If you want to check out how the AI performs without downloading our project, watch our demo (click the gif to watch the full video):
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Silvan-M/Game-TARS/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+[![Game TARS - Showcase](https://j.gifs.com/P7vOjl.gif)](https://www.youtube.com/watch?v=Ix2q-pfDjgg&feature=youtu.be)
