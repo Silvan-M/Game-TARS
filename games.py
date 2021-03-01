@@ -1128,7 +1128,13 @@ class space_invader:
 class snake:
     def __init__(self):
         self.illegalcount = 0
-        self.mode = 1 # Mode 0: 12 inputs, see below; Mode 1: input the complete field; Mode 2: Snake head centered
+
+        # MODES - The modes change the way the state is formed
+        # Mode 0: 12 inputs, see below
+        # Mode 1: input the complete field (one-hot)
+        # Mode 2: Snake head centered (one-hot)
+        # Mode 3: input the complete field with 1 as apple, -1 as obstacle and 0 as empty
+        self.mode = 3
 
         # Important field size variable
         self.field_size = 10 # field_size x field_size snake grid
@@ -1143,6 +1149,9 @@ class snake:
         elif self.mode == 2:
             outPutFieldSize = (self.field_size//2)*2-1
             self.state = [0]*((outPutFieldSize**2)*2)
+            self.batch_size = 1
+        elif self.mode == 3:
+            self.state = [0]*(self.field_size**2)
             self.batch_size = 1
 
         gamma = 0.9
@@ -1414,6 +1423,12 @@ class snake:
                 fieldSnake[i] = 1
             fieldApple[self.apple] = 1
             return self.centerSnakeHead(fieldSnake, 1)+self.centerSnakeHead(fieldApple, 0)
+        elif self.mode == 3:
+            fieldSnake = [0]*(self.field_size**2)
+            for i in self.snake:
+                fieldSnake[i] = -1
+            fieldSnake[self.apple] = 1
+            return fieldSnake
 
     def centerSnakeHead(self, field, fillingVar):
         snakeHead = self.snake[-1]
