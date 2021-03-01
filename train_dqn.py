@@ -4,8 +4,8 @@ import os
 import logging
 
 # Disable TensorFlow logging:
-logging.getLogger('tensorflow').disabled = True
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+# logging.getLogger('tensorflow').disabled = True
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 import tensorflow as tf
 import datetime
@@ -103,11 +103,11 @@ class train_dqn():
                 # Simulate batch size of 2
                 inp = [prev_observations, observations]
 
-            _, prob = self.TrainNet.get_prob(np.array(inp), 1) # TrainNet determines favorable action
+            _, prob = self.TrainNet.get_prob(np.array(inp), 0) # TrainNet determines favorable action
             
-            # if np.random.random() < epsilon:
-            #     delete = np.argmax(prob)
-            #     prob[delete] = -1
+            if np.random.random() < epsilon:
+                delete = np.argmax(prob)
+                prob[delete] = -1
             
             action = np.argmax(prob)
             
@@ -117,17 +117,17 @@ class train_dqn():
                 apples += 1
 
             rewards += reward        
-            # exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
-            # self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
-            # loss = self.TrainNet.train(self.TargetNet) # returns loss 
-            # if isinstance(loss, int): # checks if loss is an integer
-            #     losses.append(loss)
-            # else:
-            #     losses.append(loss.numpy()) # converted into an integer
-            # iter += 1 # increment the counter
-            # if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
-            #     self.TargetNet.copy_weights(self.TrainNet) 
-            losses.append(0)
+            exp = {'s': np.array(prev_observations), 'a': action, 'r': reward, 's2': np.array(observations), 'done': done} # make memory callable as a dictionary
+            self.TrainNet.add_experience(exp) # memorizes experience, if the max amount is exceeded the oldest element gets deleted
+            loss = self.TrainNet.train(self.TargetNet) # returns loss 
+            if isinstance(loss, int): # checks if loss is an integer
+                losses.append(loss)
+            else:
+                losses.append(loss.numpy()) # converted into an integer
+            iter += 1 # increment the counter
+            if iter % copy_step == 0: #copies the weights of the dqn to the TrainNet if the iter is a multiple of copy_step
+                self.TargetNet.copy_weights(self.TrainNet) 
+
             if verbose == 1:
                 if done:
                     print("Reward: {0: 3.1f} | Apples: {1:5} | Done: {2}".format(rewards,str(apples),str(done)))

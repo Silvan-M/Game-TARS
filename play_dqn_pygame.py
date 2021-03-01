@@ -1,3 +1,4 @@
+from numpy.lib.function_base import _quantile_dispatcher
 import pygame 
 from pygame import gfxdraw
 import numpy as np
@@ -18,6 +19,7 @@ import os
 import games as g
 import dqn as dqn
 import min_max_alg as mma
+import matplotlib as plt
 
 class play_dqn_pygame:
     def __init__(self):
@@ -52,6 +54,7 @@ class play_dqn_pygame:
 
         # Assisted mode
         self.assisted = False
+        self.prob_list = []
 
     # DISPLAY FUNCTIONS: Frequently used structures will be defined here as a function
 
@@ -211,8 +214,31 @@ class play_dqn_pygame:
 
     # Snake specific functions
     def drawSnake(self):
-        self.addAsssistedButton(100,30)
         fs = self.snake.field_size
+
+        self.addAsssistedButton(70,530)
+        if self.assisted and len(self.prob_list) == 4:
+            grad = pygame.image.load('resources/gradient.png')
+            gradient = pygame.transform.scale(grad, (300, 30)) 
+            # set images to specific position
+            self.screen.blit(gradient, (250, 555))
+            pygame.draw.rect(self.screen, self.White, (250, 555, 300, 30), 2)
+
+
+            distanceTopWall = self.snake.snake[-1]//self.snake.field_size
+            distanceLeftWall = self.snake.snake[-1]-distanceTopWall*self.snake.field_size
+            
+            distances = [[150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall-500/fs],[150+500/fs*distanceLeftWall+500/fs, 50+500/fs*distanceTopWall],[150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall+500/fs],[150+500/fs*distanceLeftWall-500/fs, 50+500/fs*distanceTopWall]]
+            cmap = plt.cm.get_cmap('cool', 255)
+
+            for i,prob in enumerate(self.prob_list):
+                color = cmap(int(prob*255))
+
+                s = pygame.Surface((500/fs, 500/fs), pygame.SRCALPHA)   # per-pixel alpha
+                s.fill((color[0]*127, color[1]*127, color[2]*127,200))    # notice the alpha value in the color
+                self.screen.blit(s, (distances[i][0],distances[i][1]))
+                # pygame.draw.rect(self.screen, color255, [distances[i][0], distances[i][1], 500/fs, 500/fs])  
+
         pygame.draw.rect(self.screen, self.White, [150, 50, 500, 500], 3)
         self.addText("Score: "+str(self.score), self.ailerons, 25, self.White, 400, 25)
         for i, v in enumerate(self.field):
@@ -223,8 +249,8 @@ class play_dqn_pygame:
             elif v == 2:
                 distanceTopWall = i//self.snake.field_size
                 distanceLeftWall = i-distanceTopWall*self.snake.field_size
-                pygame.draw.rect(self.screen, self.Teal, [150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall, 500/fs, 500/fs])
-
+                pygame.draw.rect(self.screen, self.Teal, [150+500/fs*distanceLeftWall, 50+500/fs*distanceTopWall, 500/fs, 500/fs])  
+                
 
     # SCREEN FUNCTIONS: Functions which display certain scenes
     
@@ -654,7 +680,7 @@ class play_dqn_pygame:
             if self.modelLoaded == False:
                 if model_name:
                     directory = "snake/models/"+model_name+"/TrainNet/"
-                    self.snakeDQN.model = tf.saved_model.load(directory)
+                    self.snakeDQN.model = tf.keras.models.load_model(directory)
                     self.first = False
                     self.modelLoaded = True
                 self.counter = 0
@@ -672,7 +698,8 @@ class play_dqn_pygame:
 
             if self.action != -1 and (self.counter % 5 == 0):
                 try:
-                    self.action = self.snakeDQN.get_action(np.array(self.state),0)
+                    _, self.prob_list = self.snakeDQN.get_prob(np.array(self.state),0)
+                    self.action = np.argmax(self.prob_list)
                 except:
                     self.reallyFirst = True
                     self.first = True
