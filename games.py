@@ -1152,7 +1152,7 @@ class snake:
             self.batch_size = 1
         elif self.mode == 3:
             self.state = [0]*(self.field_size**2)
-            self.batch_size = 1
+            self.batch_size = 2
 
         gamma = 0.9
         copy_step = 50
