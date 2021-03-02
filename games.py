@@ -1175,6 +1175,7 @@ class snake:
         self.snake = [int(self.field_size**2/2)]
         self.prevAction = 2
         self.memory = []
+        self.didRepeat = 0
 
         # Snake rewards
         self.reward_apple = 1000 # Snake collects apple
@@ -1241,6 +1242,14 @@ class snake:
         
         if self.field in self.memory:
             reward += self.reward_repetitive
+            self.didRepeat += 1
+        else:
+            self.didRepeat = 0
+        
+        if self.didRepeat >= 5:
+            # If repetitive over 5 times, kill snake as punishment
+            return True, self.reward_death, self.getState(action)
+
 
         self.addMemory()
 

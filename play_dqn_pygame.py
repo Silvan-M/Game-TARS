@@ -709,6 +709,7 @@ class play_dqn_pygame:
                 done, reward, state =  self.snake.step(self.action)
                 self.field = self.snake.field
                 self.state = state
+                print(reward)
 
                 if reward == self.snake.reward_apple:
                     self.score += 1
