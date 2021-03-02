@@ -1133,8 +1133,9 @@ class snake:
         # Mode 0: 12 inputs, see below
         # Mode 1: input the complete field (one-hot)
         # Mode 2: Snake head centered (one-hot)
-        # Mode 3: input the complete field with 1 as apple, -1 as obstacle and 0 as empty
-        self.mode = 3
+        # Mode 3: input the complete field with 1 as apple, -1 as obstacle and 0 as empty (batch_size = 2)
+        # Mode 4: input the complete field with 2 as apple, -1 as obstacle and 0 as empty and head as 1
+        self.mode = 4
 
         # Important field size variable
         self.field_size = 10 # field_size x field_size snake grid
@@ -1153,6 +1154,9 @@ class snake:
         elif self.mode == 3:
             self.state = [0]*(self.field_size**2)
             self.batch_size = 2
+        elif self.mode == 4:
+            self.state = [0]*(self.field_size**2)
+            self.batch_size = 1
 
         gamma = 0.9
         copy_step = 50
@@ -1437,6 +1441,13 @@ class snake:
             for i in self.snake:
                 fieldSnake[i] = -1
             fieldSnake[self.apple] = 1
+            return fieldSnake
+        elif self.mode == 4:
+            fieldSnake = [0]*(self.field_size**2)
+            for i in self.snake:
+                fieldSnake[i] = -1
+            fieldSnake[self.apple] = 2
+            fieldSnake[self.snake[-1]] = 1
             return fieldSnake
 
     def centerSnakeHead(self, field, fillingVar):
