@@ -325,7 +325,7 @@ class train_dqn():
 
         # LOADING MODELS - Set one of the variables if you want to load a model
         # Define model name
-        model_name = ""
+        model_name = "model.2021.03.02-09.49.43-I.10-N.499999"
         # Alternatively define relative model path
         model_path = ""
         

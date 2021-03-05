@@ -129,7 +129,7 @@ def plotSnake(log_path):
     if len(data)*log_interval >= 100000:
         intvl = 100
         print("Automatically swichted to avg. every 100th value")
-    elif len(data)*log_interval >= 50000:
+    elif len(data)*log_interval >= 10000:
         intvl = 10
         print("Automatically swichted to avg. every 10th value")
     
