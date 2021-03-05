@@ -1166,7 +1166,7 @@ class snake:
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
-        epsilon = 0.05
+        epsilon = 1
         min_epsilon = 0.05
         decay = 0.999
         self.variables = [self.state, gamma, copy_step, num_state, num_actions, hidden_units, max_experience, min_experience, self.batch_size, alpha, epsilon, min_epsilon, decay]

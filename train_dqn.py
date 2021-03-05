@@ -301,7 +301,7 @@ class train_dqn():
                 game = "connectfour"
             else:
                 print("Not recognized input, please try again")
-        print("Training "+game)
+        print("Training {}!".format(game))
         
         # Here you can choose which of the games declared above you want to train, feel free to change!
         game = games[game]
@@ -325,7 +325,7 @@ class train_dqn():
 
         # LOADING MODELS - Set one of the variables if you want to load a model
         # Define model name
-        model_name = "model.2021.03.02-09.49.43-I.10-N.499999"
+        model_name = ""
         # Alternatively define relative model path
         model_path = ""
         
