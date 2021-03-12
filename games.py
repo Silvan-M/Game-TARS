@@ -1156,13 +1156,13 @@ class snake:
             self.batch_size = 2
         elif self.mode == 4:
             self.state = [0]*(self.field_size**2)
-            self.batch_size = 1
+            self.batch_size = 200
 
         gamma = 0.9
         copy_step = 50
         num_state = len(self.state)
         num_actions = 4 # 0 = Up, 1 = Right, 2 = Down, 3 = Left
-        hidden_units = [27*9]
+        hidden_units = [128,64,32]
         max_experience = 50000
         min_experience = 100
         alpha = 0.01
