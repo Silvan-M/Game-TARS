@@ -21,4 +21,4 @@ You are able to choose to let the AI play or you can try the game yourself. When
 # Showcase Video
 If you want to check out how the AI performs without downloading our project, watch our demo (click the gif to watch the full video):
 
-[![Game TARS - Showcase](https://j.gifs.com/P7vOjl.gif)](https://www.youtube.com/watch?v=Ix2q-pfDjgg&feature=youtu.be)
+[![Game TARS - Showcase](https://j.gifs.com/P7vOjl.gif)](https://youtu.be/2EOwnuxdsIs)
